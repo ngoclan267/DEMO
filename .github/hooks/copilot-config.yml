@@ -1,0 +1,7 @@
+# Cau hinh hook ghi log khi Copilot duoc su dung trong repo nay.
+# Xem scripts/log_hook.py de biet dinh dang log dau ra (.ai-log/).
+enabled: true
+log_path: .ai-log/copilot.jsonl
+capture:
+  - prompts
+  - accepted_suggestions

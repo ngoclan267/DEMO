@@ -1,0 +1,3 @@
+{
+  "afterEdit": "python scripts/log_hook.py cursor '{\"event\":\"after_edit\"}'"
+}

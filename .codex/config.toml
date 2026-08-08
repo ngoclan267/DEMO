@@ -1,0 +1,2 @@
+[hooks]
+on_completion = "python scripts/log_hook.py codex '{\"event\":\"completion\"}'"

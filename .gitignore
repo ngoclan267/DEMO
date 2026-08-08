@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+.ai-log/*.jsonl
+.ai-log/summary.json
+node_modules/
+dist/
+*.log
+.DS_Store
+data/*.db

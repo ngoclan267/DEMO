@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel — Social Listening đa tác tử</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220;
+    --surface:#121B2E;
+    --surface-2:#16233A;
+    --surface-3:#1C2C46;
+    --border:#223049;
+    --text:#E9EDF5;
+    --text-muted:#8B96AB;
+    --text-faint:#5B6880;
+    --teal:#2FD3A4;
+    --teal-dim:rgba(47,211,164,.14);
+    --coral:#FF6B5C;
+    --coral-dim:rgba(255,107,92,.14);
+    --amber:#F0B429;
+    --amber-dim:rgba(240,180,41,.14);
+    --font-display:'Fraunces',serif;
+    --font-body:'IBM Plex Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.045) 1px, transparent 0);
+    background-size:26px 26px;
+    pointer-events:none;
+    z-index:0;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+  ::selection{background:var(--teal);color:#04140F;}
+  :focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
+  h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; margin:0; letter-spacing:-.01em;}
+  .mono{font-family:var(--font-mono);}
+  .muted{color:var(--text-muted);}
+
+  /* ---------- Scrollbar ---------- */
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;}
+
+  /* ================= LOGIN ================= */
+  #login-screen{
+    position:relative; z-index:1;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .login-grid{
+    display:grid; grid-template-columns:1fr 1fr; max-width:920px; width:100%;
+    border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:var(--surface);
+    box-shadow:0 40px 80px -30px rgba(0,0,0,.6);
+  }
+  .login-art{
+    position:relative; background:
+      radial-gradient(circle at 30% 20%, rgba(47,211,164,.16), transparent 55%),
+      radial-gradient(circle at 80% 80%, rgba(255,107,92,.14), transparent 50%),
+      #0D1626;
+    padding:40px; display:flex; flex-direction:column; justify-content:space-between;
+    border-right:1px solid var(--border);
+  }
+  .login-art svg{width:100%; height:auto;}
+  .brand-mark{display:flex; align-items:center; gap:10px;}
+  .brand-mark .dot{width:10px;height:10px;border-radius:50%;background:var(--teal); box-shadow:0 0 0 4px var(--teal-dim);}
+  .brand-mark span{font-family:var(--font-display); font-size:19px; font-weight:600;}
+  .login-quote{font-family:var(--font-display); font-size:22px; line-height:1.4; color:#F2F5FA; max-width:340px;}
+  .login-quote small{display:block; margin-top:14px; font-family:var(--font-mono); font-size:12px; color:var(--text-muted); font-style:normal;}
+  .login-form-wrap{padding:44px 40px;}
+  .login-form-wrap h1{font-size:26px; margin-bottom:6px;}
+  .login-sub{color:var(--text-muted); font-size:14px; margin-bottom:28px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; letter-spacing:.02em;}
+  .field input, .field textarea{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:11px 13px; border-radius:8px; font-size:14px; font-family:var(--font-body); resize:vertical;
+  }
+  .field input:focus, .field textarea:focus{border-color:var(--teal);}
+  .row-between{display:flex; justify-content:space-between; align-items:center; margin:14px 0 22px;}
+  .link-btn{background:none;border:none;color:var(--teal);font-size:13px;cursor:pointer;padding:0;}
+  .btn-primary{
+    width:100%; background:var(--teal); color:#04140F; border:none; padding:12px; border-radius:8px;
+    font-weight:600; font-size:14px; cursor:pointer; transition:transform .12s ease, filter .12s ease;
+  }
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-ghost{
+    background:transparent; border:1px solid var(--border); color:var(--text); padding:10px 16px;
+    border-radius:8px; font-size:13px; cursor:pointer;
+  }
+  .btn-ghost:hover{border-color:var(--text-faint);}
+  .signup-hint{margin-top:18px; font-size:13px; color:var(--text-muted); text-align:center;}
+  .demo-hint{margin-top:22px; font-size:12px; color:var(--text-faint); border-top:1px dashed var(--border); padding-top:14px; font-family:var(--font-mono);}
+
+  /* ================= APP SHELL ================= */
+  #app-screen{position:relative; z-index:1; display:none; min-height:100vh; grid-template-columns:248px 1fr;}
+  #app-screen.active{display:grid;}
+  #login-screen.hidden{display:none;}
+
+  .sidebar{
+    border-right:1px solid var(--border); background:rgba(18,27,46,.6);
+    padding:22px 16px; display:flex; flex-direction:column; gap:22px; position:sticky; top:0; height:100vh;
+  }
+  .sidebar .brand-mark{padding:0 6px;}
+  .nav-section-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); padding:0 10px; margin-bottom:6px;}
+  .nav-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer;
+    color:var(--text-muted); font-size:13.5px; font-weight:500; border:1px solid transparent;
+  }
+  .nav-item svg{width:16px;height:16px; flex-shrink:0;}
+  .nav-item:hover{background:var(--surface-2); color:var(--text);}
+  .nav-item.active{background:var(--teal-dim); color:var(--teal); border-color:rgba(47,211,164,.25);}
+  .topic-pill{
+    display:flex; align-items:center; justify-content:space-between; padding:9px 10px; border-radius:8px;
+    cursor:pointer; font-size:13.5px; color:var(--text-muted);
+  }
+  .topic-pill:hover{background:var(--surface-2); color:var(--text);}
+  .topic-pill.active{background:var(--surface-2); color:var(--text); font-weight:600;}
+  .topic-pill .badge-count{font-family:var(--font-mono); font-size:11px; color:var(--text-faint);}
+  .sidebar-footer{margin-top:auto; border-top:1px solid var(--border); padding-top:14px;}
+  .user-chip{display:flex; align-items:center; gap:10px; padding:6px; border-radius:8px; cursor:pointer;}
+  .user-chip:hover{background:var(--surface-2);}
+  .avatar{width:30px;height:30px;border-radius:50%; background:linear-gradient(135deg,var(--teal),#1B8F6F); display:flex;align-items:center;justify-content:center; font-size:12px; font-weight:700; color:#04140F; flex-shrink:0;}
+  .user-chip .u-name{font-size:13px; font-weight:600;}
+  .user-chip .u-role{font-size:11px; color:var(--text-faint);}
+
+  .main-col{min-width:0; display:flex; flex-direction:column;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; padding:16px 28px;
+    border-bottom:1px solid var(--border); position:sticky; top:0; background:rgba(11,18,32,.85); backdrop-filter:blur(8px); z-index:5;
+  }
+  .breadcrumb{font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:6px;}
+  .breadcrumb b{color:var(--text); font-weight:600;}
+  .breadcrumb .sep{color:var(--text-faint);}
+  .topbar-actions{display:flex; align-items:center; gap:14px;}
+  .icon-btn{
+    width:34px;height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface-2); border:1px solid var(--border); cursor:pointer; position:relative; color:var(--text-muted);
+  }
+  .icon-btn:hover{color:var(--text); border-color:var(--text-faint);}
+  .icon-btn svg{width:16px;height:16px;}
+  .notif-dot{position:absolute; top:-3px; right:-3px; width:9px;height:9px;border-radius:50%; background:var(--coral); border:2px solid var(--ink);}
+
+  .content{padding:28px; flex:1;}
+  .page-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; gap:16px; flex-wrap:wrap;}
+  .page-head h1{font-size:24px;}
+  .page-head p{color:var(--text-muted); font-size:14px; margin-top:6px; max-width:560px;}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:8px; font-size:13.5px;
+    font-weight:600; cursor:pointer; border:1px solid transparent; white-space:nowrap;
+  }
+  .btn-accent{background:var(--teal); color:#04140F;}
+  .btn-accent:hover{filter:brightness(1.08);}
+  .btn-outline{background:transparent; border-color:var(--border); color:var(--text);}
+  .btn-outline:hover{border-color:var(--text-faint);}
+  .btn-sm{padding:7px 12px; font-size:12.5px;}
+
+  /* ---------- Cards / stat grid ---------- */
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px;}
+  .stat-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px;}
+  .stat-card .label{font-size:12px; color:var(--text-muted); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;}
+  .stat-card .value{font-family:var(--font-mono); font-size:28px; font-weight:600;}
+  .stat-card .delta{font-size:12px; margin-top:6px; font-family:var(--font-mono);}
+  .delta.up{color:var(--coral);}
+  .delta.down{color:var(--teal);}
+  .delta.flat{color:var(--text-faint);}
+
+  .report-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .report-table th{text-align:left; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; padding:0 10px 10px; font-weight:600;}
+  .report-table td{padding:12px 10px; border-top:1px solid var(--border);}
+  .report-table td:not(:first-child), .report-table th:not(:first-child){text-align:right;}
+  .report-table tbody tr:hover{background:var(--surface-2);}
+
+  .topic-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .topic-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px;
+    cursor:pointer; transition:border-color .15s ease, transform .15s ease; position:relative;
+  }
+  .topic-card:hover{border-color:rgba(47,211,164,.35); transform:translateY(-2px);}
+  .topic-card .t-name{font-family:var(--font-display); font-size:19px; margin-bottom:4px;}
+  .topic-card .t-meta{font-size:12px; color:var(--text-faint); margin-bottom:16px;}
+  .topic-card .t-stats{display:flex; gap:18px;}
+  .topic-card .t-stat b{font-family:var(--font-mono); font-size:18px; display:block;}
+  .topic-card .t-stat span{font-size:11px; color:var(--text-muted);}
+  .topic-card .toggle-dot{position:absolute; top:18px; right:18px; width:8px;height:8px;border-radius:50%;}
+  .topic-card.new-topic{
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;
+    border-style:dashed; color:var(--text-muted); min-height:150px;
+  }
+  .topic-card.new-topic:hover{color:var(--teal); border-color:var(--teal);}
+
+  /* ---------- Pain point card w/ verification stamp ---------- */
+  .pp-list{display:flex; flex-direction:column; gap:12px;}
+  .pp-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 18px 18px 20px; display:flex; gap:18px; align-items:center; cursor:pointer;
+    border-left:3px solid var(--border);
+  }
+  .pp-card:hover{background:var(--surface-2);}
+  .pp-card.sev-high{border-left-color:var(--coral);}
+  .pp-card.sev-medium{border-left-color:var(--amber);}
+  .pp-card.sev-low{border-left-color:var(--teal);}
+  .pp-main{flex:1; min-width:0;}
+  .pp-title{font-size:15px; font-weight:600; margin-bottom:4px;}
+  .pp-desc{font-size:13px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .pp-meta{display:flex; gap:14px; margin-top:10px; font-size:11.5px; color:var(--text-faint); font-family:var(--font-mono);}
+  .pp-side{display:flex; align-items:center; gap:16px; flex-shrink:0;}
+  .sparkline{width:70px; height:28px;}
+
+  .stamp{
+    width:78px; height:78px; border-radius:50%; border:2px solid;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:var(--font-mono); flex-shrink:0; transform:rotate(-6deg);
+    background:transparent;
+  }
+  .stamp .stamp-status{font-size:8.5px; letter-spacing:.05em; font-weight:700; text-align:center; line-height:1.2; width:60px;}
+  .stamp .stamp-pct{font-size:16px; font-weight:600; margin-top:2px;}
+  .stamp.verified{border-color:var(--teal); color:var(--teal);}
+  .stamp.unverified{border-color:var(--text-faint); color:var(--text-faint);}
+  .stamp.needs_review{border-color:var(--amber); color:var(--amber);}
+  .stamp-sm{width:44px;height:44px; transform:rotate(-8deg);}
+  .stamp-sm .stamp-status{font-size:6.5px; width:36px;}
+  .stamp-sm .stamp-pct{font-size:11px;}
+
+  .badge{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; font-family:var(--font-mono);}
+  .badge.sev-high{background:var(--coral-dim); color:var(--coral);}
+  .badge.sev-medium{background:var(--amber-dim); color:var(--amber);}
+  .badge.sev-low{background:var(--teal-dim); color:var(--teal);}
+  .badge.status-open{background:var(--coral-dim); color:var(--coral);}
+  .badge.status-in_progress{background:var(--amber-dim); color:var(--amber);}
+  .badge.status-resolved{background:var(--teal-dim); color:var(--teal);}
+  .status-btn-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .status-btn{padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:600; border:1px solid var(--border); background:var(--surface-2); color:var(--text-muted); cursor:pointer;}
+  .status-btn.active.status-open{background:var(--coral-dim); color:var(--coral); border-color:rgba(255,107,92,.35);}
+  .status-btn.active.status-in_progress{background:var(--amber-dim); color:var(--amber); border-color:rgba(240,180,41,.35);}
+  .status-btn.active.status-resolved{background:var(--teal-dim); color:var(--teal); border-color:rgba(47,211,164,.35);}
+
+  /* ---------- Pain point detail ---------- */
+  .detail-grid{display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start;}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; margin-bottom:16px;}
+  .panel h3{font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:14px; font-family:var(--font-body); font-weight:600;}
+  .quote-list{display:flex; flex-direction:column; gap:10px;}
+  .quote{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+    font-size:13.5px; color:var(--text); position:relative; font-style:italic;
+  }
+  .quote::before{content:'"'; font-family:var(--font-display); color:var(--text-faint); font-size:22px; position:absolute; left:8px; top:2px;}
+  .quote{padding-left:26px;}
+  .verify-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .verify-row:last-child{border-bottom:none;}
+  .verify-row span:first-child{color:var(--text-muted);}
+  .source-tag{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:8px 10px; border-radius:8px;
+    background:var(--surface-2); border:1px solid var(--border); margin-bottom:8px; width:100%;
+  }
+
+  /* ---------- Trend chart (xu huong that theo ngay/tuan/thang) ---------- */
+  .trend-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;}
+  .trend-legend{display:flex; gap:16px; font-size:12px; color:var(--text-muted); align-items:center;}
+  .trend-legend .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;}
+  .trend-chart-wrap{position:relative;}
+  .trend-chart-svg{width:100%; height:200px; display:block;}
+  .trend-empty{padding:36px 0; text-align:center; color:var(--text-faint); font-size:13px;}
+  .trend-delta{font-size:12.5px; margin-bottom:14px; font-family:var(--font-mono);}
+  .trend-delta.up{color:var(--coral);}
+  .trend-delta.down{color:var(--teal);}
+  .trend-tooltip{
+    position:absolute; pointer-events:none; background:var(--surface-3); border:1px solid var(--border);
+    border-radius:8px; padding:8px 12px; font-size:12px; font-family:var(--font-mono); white-space:nowrap;
+    transform:translate(-50%,-115%); z-index:5; box-shadow:0 8px 20px rgba(0,0,0,.35); line-height:1.6;
+  }
+  .trend-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .trend-table th{text-align:left; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; padding:0 8px 8px; font-weight:600;}
+  .trend-table td{padding:8px; border-top:1px solid var(--border); font-family:var(--font-mono);}
+  .trend-table td:not(:first-child), .trend-table th:not(:first-child){text-align:right;}
+  .trend-link-btn{background:none;border:none;color:var(--text-muted); font-size:12px; cursor:pointer; text-decoration:underline; padding:6px 0;}
+  .trend-link-btn:hover{color:var(--text);}
+
+  /* ---------- Notifications ---------- */
+  .filter-bar{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+  .chip{
+    padding:7px 13px; border-radius:20px; border:1px solid var(--border); font-size:12.5px; color:var(--text-muted); cursor:pointer;
+  }
+  .chip.active{background:var(--teal-dim); color:var(--teal); border-color:rgba(47,211,164,.3);}
+  .notif-row{
+    display:flex; gap:14px; padding:16px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
+    margin-bottom:10px; align-items:flex-start;
+  }
+  .notif-row.unread{border-left:3px solid var(--teal);}
+  .notif-icon{width:34px;height:34px; border-radius:8px; background:var(--coral-dim); color:var(--coral); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .notif-icon svg{width:16px;height:16px;}
+  .notif-body{flex:1;}
+  .notif-title{font-size:14px; font-weight:600; margin-bottom:3px;}
+  .notif-msg{font-size:13px; color:var(--text-muted);}
+  .notif-time{font-size:11px; color:var(--text-faint); font-family:var(--font-mono); white-space:nowrap;}
+
+  /* ---------- Settings ---------- */
+  .settings-grid{display:grid; grid-template-columns:220px 1fr; gap:24px;}
+  .settings-nav{display:flex; flex-direction:column; gap:4px;}
+  .settings-nav button{
+    text-align:left; background:none; border:none; color:var(--text-muted); padding:10px 12px; border-radius:8px; font-size:13.5px; cursor:pointer;
+  }
+  .settings-nav button.active{background:var(--surface-2); color:var(--text); font-weight:600;}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .toggle-row{display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid var(--border);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-row .t-label{font-size:13.5px; font-weight:500;}
+  .toggle-row .t-sub{font-size:12px; color:var(--text-faint); margin-top:2px;}
+  .switch{width:38px;height:22px; border-radius:20px; background:var(--surface-3); position:relative; cursor:pointer; border:1px solid var(--border); flex-shrink:0;}
+  .switch.on{background:var(--teal-dim); border-color:rgba(47,211,164,.4);}
+  .switch::after{content:''; position:absolute; width:16px;height:16px; border-radius:50%; background:var(--text-faint); top:2px; left:2px; transition:.15s;}
+  .switch.on::after{background:var(--teal); left:18px;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(4,8,16,.7); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+    backdrop-filter:blur(3px);
+  }
+  .modal-overlay.active{display:flex;}
+  .modal{background:var(--surface); border:1px solid var(--border); border-radius:14px; width:100%; max-width:520px; padding:26px; max-height:88vh; overflow:auto;}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .modal-head h2{font-size:19px;}
+  .close-x{background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:20px; line-height:1;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+  .checkbox-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .checkbox-item{display:flex; align-items:center; gap:8px; font-size:13px; background:var(--surface-2); border:1px solid var(--border); padding:9px 10px; border-radius:7px; cursor:pointer;}
+  .checkbox-item input{accent-color:var(--teal);}
+
+  .empty-state{text-align:center; padding:60px 20px; color:var(--text-faint);}
+  .empty-state svg{width:40px;height:40px; margin-bottom:14px; opacity:.6;}
+
+  @media (max-width:980px){
+    .stat-grid, .topic-grid{grid-template-columns:repeat(2,1fr);}
+    .detail-grid, .settings-grid{grid-template-columns:1fr;}
+    #app-screen{grid-template-columns:1fr;}
+    .sidebar{display:none;}
+    .login-grid{grid-template-columns:1fr;}
+    .login-art{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="login-screen">
+  <div class="login-grid">
+    <div class="login-art">
+      <div class="brand-mark"><span class="dot"></span><span>Sentinel</span></div>
+      <svg viewBox="0 0 300 220" fill="none">
+        <g stroke="#2A3B5C" stroke-width="1">
+          <line x1="40" y1="40" x2="150" y2="90"/>
+          <line x1="150" y1="90" x2="260" y2="50"/>
+          <line x1="150" y1="90" x2="90" y2="170"/>
+          <line x1="150" y1="90" x2="220" y2="180"/>
+          <line x1="90" y1="170" x2="220" y2="180"/>
+        </g>
+        <circle cx="150" cy="90" r="10" fill="#2FD3A4"/>
+        <circle cx="40" cy="40" r="6" fill="#5B6880"/>
+        <circle cx="260" cy="50" r="6" fill="#5B6880"/>
+        <circle cx="90" cy="170" r="6" fill="#FF6B5C"/>
+        <circle cx="220" cy="180" r="6" fill="#F0B429"/>
+      </svg>
+      <div class="login-quote">
+        “Không cảnh báo nào được xác nhận nếu các tác tử chưa đồng thuận.”
+        <small>— NGUYÊN TẮC VERIFICATION &amp; CONSENSUS AGENT</small>
+      </div>
+    </div>
+    <div class="login-form-wrap">
+      <div id="login-panel">
+        <h1>Đăng nhập</h1>
+        <p class="login-sub">Theo dõi phản hồi tiêu cực đa nguồn cho doanh nghiệp của bạn.</p>
+        <div class="field"><label>Email công việc</label><input type="email" value="pm@techcombank-demo.vn"></div>
+        <div class="field"><label>Mật khẩu</label><input type="password" value="••••••••"></div>
+        <div class="row-between">
+          <button class="link-btn" onclick="showForgot()">Quên mật khẩu?</button>
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+        <p class="signup-hint">Chưa có tài khoản? <a href="#" class="link-btn" style="display:inline">Đăng ký</a></p>
+        <p class="demo-hint">DEMO · dữ liệu minh hoạ · bấm “Đăng nhập” để vào Workspace</p>
+      </div>
+      <div id="forgot-panel" style="display:none;">
+        <h1>Quên mật khẩu</h1>
+        <p class="login-sub">Nhập email để nhận liên kết đặt lại mật khẩu.</p>
+        <div class="field"><label>Email</label><input type="email" placeholder="ban@doanhnghiep.vn"></div>
+        <button class="btn-primary" onclick="showLogin()">Gửi liên kết reset</button>
+        <p class="signup-hint"><button class="link-btn" onclick="showLogin()">← Quay lại đăng nhập</button></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP SHELL ============ -->
+<section id="app-screen">
+  <aside class="sidebar">
+    <div class="brand-mark"><span class="dot"></span><span>Sentinel</span></div>
+
+    <div>
+      <div class="nav-section-label">Workspace</div>
+      <ul class="nav-list">
+        <li class="nav-item" data-nav="workspace" onclick="go('workspace')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Tất cả chủ đề
+        </li>
+        <li class="nav-item" data-nav="report" onclick="go('report')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="0.5"/><rect x="12.5" y="8" width="3" height="10" rx="0.5"/><rect x="18" y="5" width="3" height="13" rx="0.5"/></svg>
+          Báo cáo tổng quan
+        </li>
+        <li class="nav-item" data-nav="notifications" onclick="go('notifications')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Trung tâm thông báo
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="nav-section-label">Chủ đề theo dõi</div>
+      <ul class="nav-list" id="topic-nav-list"></ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <ul class="nav-list" style="margin-bottom:8px;">
+        <li class="nav-item" data-nav="settings" onclick="go('settings')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Cài đặt tài khoản
+        </li>
+      </ul>
+      <div class="user-chip" onclick="go('settings')">
+        <div class="avatar">PM</div>
+        <div>
+          <div class="u-name">Phạm Minh</div>
+          <div class="u-role">Product Manager</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <div class="topbar">
+      <div class="breadcrumb" id="breadcrumb">Workspace</div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="go('notifications')" title="Thông báo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notif-dot" id="notif-dot"></span>
+        </button>
+        <button class="icon-btn" onclick="go('settings')" title="Cài đặt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</section>
+
+<!-- ============ MODAL: Tạo / Chỉnh sửa chủ đề ============ -->
+<div class="modal-overlay" id="topic-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="topic-modal-title">Tạo chủ đề mới</h2>
+      <button class="close-x" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="field"><label>Tên chủ đề</label><input id="tm-name" type="text" placeholder="Ví dụ: BIDV, Thẻ tín dụng..."></div>
+    <div class="field"><label>Từ khoá theo dõi (phân tách bằng dấu phẩy)</label><input id="tm-keywords" type="text" placeholder="bidv, đăng nhập bidv"></div>
+    <div class="field">
+      <label>Nguồn dữ liệu thật (crawl công khai, không cần đăng nhập)</label>
+      <div class="checkbox-grid">
+        <label class="checkbox-item"><input type="checkbox" value="google_play" checked onchange="toggleSourceConfigRow('google_play', this.checked)"> Google Play</label>
+        <label class="checkbox-item"><input type="checkbox" value="app_store" checked onchange="toggleSourceConfigRow('app_store', this.checked)"> App Store</label>
+        <label class="checkbox-item"><input type="checkbox" disabled> LinkedIn (chưa hỗ trợ)</label>
+        <label class="checkbox-item"><input type="checkbox" disabled> Facebook (sắp có)</label>
+      </div>
+    </div>
+    <div class="field" id="tm-gp-row">
+      <label>Google Play — Package name (app_id)</label>
+      <input id="tm-gp-appid" type="text" placeholder="vd: vn.com.techcombank.bb.app">
+    </div>
+    <div class="field" id="tm-as-row" style="display:flex; gap:10px;">
+      <div style="flex:2"><label>App Store — Numeric ID</label><input id="tm-as-appid" type="text" placeholder="vd: 1548623362"></div>
+      <div style="flex:1"><label>Quốc gia</label><input id="tm-as-country" type="text" placeholder="vn" value="vn"></div>
+    </div>
+    <div class="field" style="margin-top:-6px;">
+      <span class="t-sub" style="font-size:12px;">Tra package name trên Google Play / id trên App Store rồi dán vào đây — thiếu app_id thì nguồn đó sẽ không crawl được dữ liệu thật.</span>
+    </div>
+    <div class="field"><label>Ngưỡng kích hoạt cảnh báo (số phản hồi)</label><input id="tm-threshold" type="number" value="10"></div>
+    <div class="toggle-row" style="border:none; padding-top:4px;">
+      <div><div class="t-label">Bật thông báo</div><div class="t-sub">Nhận cảnh báo khi vượt ngưỡng</div></div>
+      <div class="switch on" id="tm-switch" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Huỷ</button>
+      <button class="btn btn-accent" onclick="saveTopic()">Lưu chủ đề</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA LAYER — kết nối frontend với FastAPI backend
+   ========================================================= */
+let topics = [];
+let painPoints = [];
+let notifications = [];
+let currentTopicId = null;
+let editingTopicId = null;
+let apiBase = null;
+const pipelineIntervalMinutes = 20; // xem PIPELINE_INTERVAL_MINUTES trong src/config.py
+
+const fallbackTopics = [
+  {id:'tcb', name:'Techcombank', keywords:['techcombank','tcb'], sources:['google_play','app_store'], threshold:10, notif:true, color:'#2FD3A4'},
+  {id:'vcb', name:'Vietcombank', keywords:['vietcombank','vcb'], sources:['google_play','app_store'], threshold:15, notif:true, color:'#5B8DEF'},
+  {id:'mbb', name:'MB Bank', keywords:['mb bank','mbbank'], sources:['google_play','app_store'], threshold:8, notif:false, color:'#F0B429'},
+];
+
+const fallbackPainPoints = [
+  {id:'pp1', topicId:'tcb', title:'Không đăng nhập được sau khi cập nhật ứng dụng', desc:'47 phản hồi tiêu cực liên quan đến lỗi đăng nhập sau bản cập nhật 3.2.1, tập trung trên Google Play và App Store.',
+   count:47, trend:[8,10,14,19,26,34,47], severity:'high', verify:'verified', confidence:88,
+   sources:['Thông báo bảo trì hệ thống — 02/08/2026, Techcombank'],
+   posts:['Cập nhật xong là không vào được app luôn, thử gỡ cài lại vẫn vậy.','Báo lỗi xác thực liên tục, thử lại nhiều lần vẫn không được.','App đứng ở màn hình loading rồi văng ra ngoài.']},
+  {id:'pp2', topicId:'tcb', title:'Tài khoản bị khoá sau quy định xác thực thiết bị mới', desc:'32 phản hồi về khoá tài khoản, nghi ngờ liên quan quy định NHNN đầu 2026 về xác thực sinh trắc học thiết bị.',
+   count:32, trend:[4,6,9,15,22,28,32], severity:'medium', verify:'needs_review', confidence:61,
+   sources:[], posts:['Tự nhiên bị khoá tài khoản không biết vì sao.','Nghe nói do quy định mới về xác thực sinh trắc học, chưa xác nhận được.']},
+  {id:'pp3', topicId:'vcb', title:'Phí dịch vụ tăng không được thông báo trước', desc:'21 phản hồi phản ánh về biểu phí mới áp dụng từ tháng 7/2026, gây bất ngờ cho người dùng.',
+   count:21, trend:[3,5,7,10,14,18,21], severity:'medium', verify:'unverified', confidence:42,
+   sources:[], posts:['Phí rút tiền tăng mà không thấy thông báo gì.','Chuyển khoản ngoài hệ thống bị trừ phí cao hơn trước khá nhiều.']},
+  {id:'pp4', topicId:'mbb', title:'Nhân viên tổng đài phản hồi chậm', desc:'15 phản hồi về thời gian chờ hỗ trợ qua tổng đài kéo dài hơn bình thường.',
+   count:15, trend:[6,7,9,10,12,14,15], severity:'low', verify:'verified', confidence:77,
+   sources:['Báo cáo nội bộ CSKH — tháng 7/2026'], posts:['Gọi tổng đài chờ 20 phút mới có người nghe máy.']},
+];
+
+const fallbackNotifications = [
+  {id:'n1', topicId:'tcb', ppId:'pp1', channel:'both', title:'Không đăng nhập được sau khi cập nhật ứng dụng', msg:'47 phản hồi tiêu cực — mức độ cao, đã xác minh.', time:'2 giờ trước', read:false},
+  {id:'n2', topicId:'tcb', ppId:'pp2', channel:'email', title:'Tài khoản bị khoá sau quy định xác thực thiết bị mới', msg:'32 phản hồi — cần xem xét thêm, chưa đồng thuận giữa các agent.', time:'9 giờ trước', read:true},
+  {id:'n3', topicId:'vcb', ppId:'pp3', channel:'website', title:'Phí dịch vụ tăng không được thông báo trước', msg:'21 phản hồi — mức độ trung bình, chưa xác minh.', time:'Hôm qua', read:true},
+];
+
+function normalizeTopic(raw){
+  return {
+    id: raw.id,
+    name: raw.name || 'Chủ đề mới',
+    keywords: Array.isArray(raw.keywords) ? raw.keywords : [],
+    sources: Array.isArray(raw.sources) ? raw.sources : [],
+    threshold: raw.alert_threshold ?? raw.threshold ?? 10,
+    notif: raw.notifications_enabled ?? raw.notif ?? true,
+    color: raw.color || '#2FD3A4',
+    ...raw
+  };
+}
+
+function buildTrendSeries(count, trendType){
+  const base = Math.max(4, Math.round(count / 2));
+  if(trendType === 'up') return [Math.max(2, base - 2), base - 1, base, base + 2, count];
+  if(trendType === 'down') return [count, Math.max(base + 1, Math.round(count * 0.85)), base, Math.max(2, base - 2), Math.max(1, Math.round(base * 0.6))];
+  return [Math.max(2, base - 1), base, base + 1, base + 1, base + 2];
+}
+
+function normalizePainPoint(raw, topicIdArg){
+  const severity = String(raw.severity || raw.severity_level || 'medium').toLowerCase();
+  const verify = String(raw.verification_status || raw.verify || 'unverified').toLowerCase();
+  const count = raw.post_count ?? raw.count ?? 0;
+  const trendValue = Array.isArray(raw.trend) ? raw.trend : buildTrendSeries(count, String(raw.trend || 'flat').toLowerCase());
+  return {
+    id: raw.id,
+    topicId: raw.topic_id || raw.topicId || topicIdArg,
+    title: raw.title || 'Pain point mới',
+    topicLabel: raw.topic_label || raw.topicLabel || null,
+    desc: raw.description || raw.desc || '',
+    count,
+    trend: trendValue,
+    severity: ['high','medium','low'].includes(severity) ? severity : 'medium',
+    verify: verify === 'verified' ? 'verified' : verify === 'needs_review' ? 'needs_review' : 'unverified',
+    confidence: Math.round((raw.confidence_score ?? raw.confidence ?? 0) * 100),
+    sources: Array.isArray(raw.sources) ? raw.sources : [],
+    posts: Array.isArray(raw.sample_posts) ? raw.sample_posts : (Array.isArray(raw.posts) ? raw.posts : []),
+    status: raw.status || 'open',
+    assignee: raw.assignee || null,
+    resolutionNotes: raw.resolution_notes || raw.resolutionNotes || null,
+    resolvedAt: raw.resolved_at || raw.resolvedAt || null,
+    ...raw,
+    trend: trendValue
+  };
+}
+
+function formatRelativeTime(value){
+  if(!value) return 'Mới';
+  const date = new Date(value);
+  if(Number.isNaN(date.getTime())) return value;
+  const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
+  if(diffMinutes < 60) return `${diffMinutes} phút trước`;
+  if(diffMinutes < 1440) return `${Math.round(diffMinutes / 60)} giờ trước`;
+  return `${Math.round(diffMinutes / 1440)} ngày trước`;
+}
+
+function normalizeNotification(raw){
+  return {
+    id: raw.id,
+    topicId: raw.topic_id || raw.topicId,
+    ppId: raw.pain_point_id || raw.ppId,
+    channel: raw.channel || 'website',
+    title: raw.title || 'Thông báo mới',
+    msg: raw.message || raw.msg || '',
+    time: formatRelativeTime(raw.sent_at || raw.time),
+    read: Boolean(raw.read),
+    ...raw
+  };
+}
+
+async function resolveApiBase(){
+  if(apiBase) return apiBase;
+  const candidates = [
+    window.location.origin,
+    'http://127.0.0.1:8000',
+    'http://localhost:8000'
+  ].filter(Boolean);
+  for(const candidate of candidates){
+    try{
+      const res = await fetch(`${candidate}/api/v1/health`);
+      if(res.ok){ apiBase = candidate; return candidate; }
+    }catch(_err){}
+  }
+  apiBase = 'http://127.0.0.1:8000';
+  return apiBase;
+}
+
+async function apiFetch(path, options = {}){
+  const base = await resolveApiBase();
+  const url = `${base}${path}`;
+  const response = await fetch(url, options);
+  if(!response.ok){
+    throw new Error(`API request failed: ${response.status}`);
+  }
+  return response;
+}
+
+function setLoadingState(){
+  document.getElementById('content').innerHTML = `
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M3 12h3M18 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      <div>Đang tải dữ liệu từ API…</div>
+    </div>`;
+}
+
+async function loadWorkspaceData(){
+  setLoadingState();
+  try{
+    const topicsResponse = await apiFetch('/api/v1/topics');
+    const topicsData = await topicsResponse.json();
+    const normalizedTopics = topicsData.map(normalizeTopic);
+
+    const painPointsByTopic = [];
+    for(const topic of normalizedTopics){
+      try{
+        const response = await apiFetch(`/api/v1/topics/${topic.id}/pain-points`);
+        const items = await response.json();
+        painPointsByTopic.push(...items.map(item => normalizePainPoint(item, topic.id)));
+      }catch(err){
+        console.warn(`Không lấy được pain point cho chủ đề ${topic.name}`, err);
+      }
+    }
+
+    const notificationsResponse = await apiFetch('/api/v1/notifications');
+    const notificationsData = await notificationsResponse.json();
+
+    topics = normalizedTopics;
+    painPoints = painPointsByTopic;
+    notifications = notificationsData.map(normalizeNotification);
+    currentTopicId = currentTopicId && normalizedTopics.some(t=>t.id===currentTopicId)
+      ? currentTopicId
+      : (normalizedTopics[0]?.id || null);
+  }catch(error){
+    console.warn('Không thể kết nối API, dùng dữ liệu demo fallback', error);
+    topics = fallbackTopics.map(normalizeTopic);
+    painPoints = fallbackPainPoints.map(item => normalizePainPoint(item, item.topicId));
+    notifications = fallbackNotifications.map(normalizeNotification);
+    currentTopicId = topics[0]?.id || null;
+  }
+
+  renderTopicNav();
+  restoreRouteOrDefault();
+}
+
+/* =========================================================
+   ROUTER
+   Trang duoc luu vao location.hash (vd #dashboard:shb-id) de neu trinh duyet
+   reload (vd do dev server auto-reload khi file du an thay doi trong luc
+   crawl/pipeline chay), nguoi dung khong bi bat ve lai chu de dau tien
+   (Techcombank) ma quay lai dung man hinh/chu de dang xem.
+   ========================================================= */
+function go(view, param){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[data-nav="${view}"]`);
+  if(navEl) navEl.classList.add('active');
+
+  const routes = {
+    workspace: renderWorkspace,
+    dashboard: ()=>renderDashboard(param || currentTopicId),
+    painpoint: ()=>renderPainPointDetail(param),
+    posts: ()=>renderPosts(param || currentTopicId),
+    notifications: renderNotifications,
+    settings: renderSettings,
+    report: renderReport,
+  };
+  (routes[view] || renderWorkspace)();
+  saveRoute(view, param);
+  document.getElementById('content').scrollTop = 0;
+  window.scrollTo(0,0);
+}
+
+function saveRoute(view, param){
+  const hash = param ? `#${view}:${param}` : `#${view}`;
+  if(location.hash !== hash) history.replaceState(null, '', hash);
+}
+
+function restoreRouteOrDefault(){
+  const raw = (location.hash || '').replace(/^#/, '');
+  const [view, param] = raw.split(':');
+
+  if(view === 'painpoint' && painPoints.some(p=>p.id===param)){
+    go('painpoint', param);
+    return;
+  }
+  if(view === 'posts' && topics.some(t=>t.id===param)){
+    currentTopicId = param;
+    go('posts', param);
+    return;
+  }
+  if(view === 'dashboard' && topics.some(t=>t.id===param)){
+    currentTopicId = param;
+    go('dashboard', param);
+    return;
+  }
+  if(['workspace', 'notifications', 'settings', 'report'].includes(view)){
+    go(view);
+    return;
+  }
+
+  if(currentTopicId){
+    go('dashboard', currentTopicId);
+  } else {
+    go('workspace');
+  }
+}
+
+function renderTopicNav(){
+  const list = document.getElementById('topic-nav-list');
+  list.innerHTML = topics.map(t=>{
+    const n = painPoints.filter(p=>p.topicId===t.id).length;
+    const active = t.id===currentTopicId ? 'active':'';
+    return `<li class="topic-pill ${active}" onclick="currentTopicId='${t.id}'; go('dashboard','${t.id}')">
+      <span>${t.name}</span><span class="badge-count">${n}</span>
+    </li>`;
+  }).join('');
+}
+
+/* =========================================================
+   VIEW: WORKSPACE
+   ========================================================= */
+function renderWorkspace(){
+  renderTopicNav();
+  document.getElementById('breadcrumb').innerHTML = `<b>Workspace</b>`;
+  const cards = topics.map(t=>{
+    const pps = painPoints.filter(p=>p.topicId===t.id);
+    const negCount = pps.reduce((s,p)=>s+p.count,0);
+    return `
+    <div class="topic-card" onclick="currentTopicId='${t.id}'; go('dashboard','${t.id}')">
+      <span class="toggle-dot" style="background:${t.notif ? 'var(--teal)':'var(--text-faint)'}"></span>
+      <div class="t-name">${t.name}</div>
+      <div class="t-meta">${t.sources.length} nguồn dữ liệu · ngưỡng ${t.threshold} phản hồi</div>
+      <div class="t-stats">
+        <div class="t-stat"><b>${pps.length}</b><span>Pain point</span></div>
+        <div class="t-stat"><b>${negCount}</b><span>Phản hồi tiêu cực</span></div>
+        <div class="t-stat"><b>${t.notif ? 'Bật':'Tắt'}</b><span>Thông báo</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Chủ đề theo dõi</h1>
+        <p>Mỗi chủ đề có tập dữ liệu, pain point và lịch sử cảnh báo riêng — bật/tắt thông báo độc lập cho từng chủ đề.</p>
+      </div>
+      <button class="btn btn-accent" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+        Tạo chủ đề mới
+      </button>
+    </div>
+    <div class="topic-grid">
+      ${cards}
+      <div class="topic-card new-topic" onclick="openModal()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Tạo chủ đề mới</span>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   TREND (xu huong that theo ngay - GET /topics/{id}/trend)
+   Thay the sparkline gia (buildTrendSeries) bang du lieu that lay tu Post.published_at
+   + classification da luu - xem src/db/repository.py:get_topic_trend.
+   ========================================================= */
+let trendCache = {};       // topicId -> raw daily points [{date,total_posts,negative_count,by_label}]
+let trendGranularity = {}; // topicId -> 'day' | 'week' | 'month'
+let trendViewMode = {};    // topicId -> 'chart' | 'table'
+let trendChartGeom = {};   // chartId -> geometry+points dung cho hover (khong luu vao DOM)
+
+async function fetchTopicTrend(topicId){
+  if(trendCache[topicId]) return trendCache[topicId];
+  try{
+    const res = await apiFetch(`/api/v1/topics/${topicId}/trend?days=90`);
+    const data = await res.json();
+    trendCache[topicId] = Array.isArray(data.points) ? data.points : [];
+  }catch(_err){
+    trendCache[topicId] = [];
+  }
+  return trendCache[topicId];
+}
+
+function isoWeekKey(dateStr){
+  const d = new Date(dateStr+'T00:00:00Z');
+  const day = (d.getUTCDay()+6)%7;
+  d.setUTCDate(d.getUTCDate()-day+3);
+  const firstThu = new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const week = 1+Math.round(((d-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+
+function bucketTrendPoints(points, granularity){
+  if(granularity==='day' || !points.length) return points;
+  const buckets = {};
+  for(const p of points){
+    const key = granularity==='month' ? p.date.slice(0,7) : isoWeekKey(p.date);
+    if(!buckets[key]) buckets[key] = {date:key, total_posts:0, negative_count:0, by_label:{}};
+    buckets[key].total_posts += p.total_posts;
+    buckets[key].negative_count += p.negative_count;
+    for(const [label,c] of Object.entries(p.by_label||{})) buckets[key].by_label[label] = (buckets[key].by_label[label]||0)+c;
+  }
+  return Object.values(buckets).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function formatTrendDate(dateKey){
+  if(!dateKey) return '';
+  if(/^\d{4}-\d{2}$/.test(dateKey)){ const [y,m] = dateKey.split('-'); return `Th${parseInt(m,10)}/${y.slice(2)}`; }
+  if(/-W\d{2}$/.test(dateKey)) return dateKey.replace('-','/');
+  const d = new Date(dateKey+'T00:00:00Z');
+  return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}`;
+}
+
+/** So sanh 2 CHU KY GAN NHAT theo dung don vi dang chon (ngay/tuan/thang) -
+ * tranh truong hop chon "Tuan" nhung phan delta van so 7-ngay-lan-luot theo
+ * lich, de bi lech qua ranh gioi thang (vd 7 ngay gan nhat dinh vao dau thang
+ * 8 nhung 7 ngay truoc do lai thuoc thang 7) gay hieu nham nhu dang tron 2 thang. */
+function trendDelta(rawPoints, granularity, bucketedPoints){
+  if(granularity === 'week' || granularity === 'month'){
+    if(!bucketedPoints || bucketedPoints.length < 2) return null;
+    const cur = bucketedPoints[bucketedPoints.length-1].negative_count;
+    const prev = bucketedPoints[bucketedPoints.length-2].negative_count;
+    const pct = prev===0 ? (cur>0?100:0) : Math.round(((cur-prev)/prev)*100);
+    return {cur, prev, pct, label: granularity==='week' ? 'tuần trước' : 'tháng trước'};
+  }
+  if(!rawPoints || rawPoints.length===0) return null;
+  const last7 = rawPoints.slice(-7), prev7 = rawPoints.slice(-14,-7);
+  const sum = arr=>arr.reduce((s,p)=>s+p.negative_count,0);
+  const cur = sum(last7), prev = sum(prev7);
+  if(prev7.length===0) return {cur, prev:null, pct:null, label:'7 ngày trước'};
+  const pct = prev===0 ? (cur>0?100:0) : Math.round(((cur-prev)/prev)*100);
+  return {cur, prev, pct, label:'7 ngày trước'};
+}
+
+/** series: [{key,color,label}]; points: [{date, [key]:number, ...}] */
+function renderLineChart(chartId, points, series){
+  const w=680, h=200, padL=34, padR=10, padT=14, padB=24;
+  const innerW=w-padL-padR, innerH=h-padT-padB;
+  const n = points.length;
+  const maxVal = Math.max(1, ...points.flatMap(p=>series.map(s=>p[s.key]||0)));
+  const x = i => n<=1 ? padL : padL + (i/(n-1))*innerW;
+  const y = v => padT + innerH - (v/maxVal)*innerH;
+  trendChartGeom[chartId] = {points, w, padL, padR, innerW, series};
+
+  const gridLines = [0,0.5,1].map(f=>{
+    const yy = padT + innerH*(1-f);
+    const val = Math.round(maxVal*f);
+    return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${w-padR}" y2="${yy.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+      <text x="${padL-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text-faint)" font-family="var(--font-mono)">${val}</text>`;
+  }).join('');
+
+  const xLabels = n ? [0, Math.floor((n-1)/2), n-1].map(i=>
+    `<text x="${x(i).toFixed(1)}" y="${h-6}" text-anchor="middle" font-size="10" fill="var(--text-faint)" font-family="var(--font-mono)">${formatTrendDate(points[i].date)}</text>`
+  ).join('') : '';
+
+  const paths = series.map(s=>{
+    const d = points.map((p,i)=>`${i===0?'M':'L'}${x(i).toFixed(1)},${y(p[s.key]||0).toFixed(1)}`).join(' ');
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join('');
+
+  return `
+    <svg class="trend-chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"
+         onmousemove="handleTrendHover(event,'${chartId}')" onmouseleave="hideTrendTooltip('${chartId}')">
+      ${gridLines}
+      ${paths}
+      ${xLabels}
+      <line id="${chartId}-cursor" x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="var(--text-faint)" stroke-width="1" stroke-dasharray="3,3" opacity="0"/>
+    </svg>
+    <div class="trend-tooltip" id="${chartId}-tooltip" style="display:none;"></div>
+  `;
+}
+
+function handleTrendHover(evt, chartId){
+  const cfg = trendChartGeom[chartId];
+  if(!cfg || !cfg.points.length) return;
+  const svg = evt.currentTarget;
+  const rect = svg.getBoundingClientRect();
+  const xPix = (evt.clientX - rect.left) * (cfg.w / rect.width);
+  const n = cfg.points.length;
+  let idx = n<=1 ? 0 : Math.round(((xPix-cfg.padL)/cfg.innerW) * (n-1));
+  idx = Math.max(0, Math.min(n-1, idx));
+  const p = cfg.points[idx];
+  const cursorX = n<=1 ? cfg.padL : cfg.padL + (idx/(n-1))*cfg.innerW;
+
+  const cursorLine = document.getElementById(`${chartId}-cursor`);
+  if(cursorLine){ cursorLine.setAttribute('x1', cursorX); cursorLine.setAttribute('x2', cursorX); cursorLine.setAttribute('opacity','1'); }
+
+  const tooltip = document.getElementById(`${chartId}-tooltip`);
+  if(tooltip){
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${evt.clientX - rect.left}px`;
+    tooltip.style.top = `${evt.clientY - rect.top}px`;
+    const rowsHTML = cfg.series.map(s=>
+      `<div><span class="dot" style="background:${s.color}"></span>${s.label}: <b>${p[s.key]||0}</b></div>`
+    ).join('');
+    tooltip.innerHTML = `<div style="color:var(--text-muted); margin-bottom:4px;">${formatTrendDate(p.date)}</div>${rowsHTML}`;
+  }
+}
+
+function hideTrendTooltip(chartId){
+  const tooltip = document.getElementById(`${chartId}-tooltip`);
+  if(tooltip) tooltip.style.display = 'none';
+  const cursorLine = document.getElementById(`${chartId}-cursor`);
+  if(cursorLine) cursorLine.setAttribute('opacity','0');
+}
+
+function renderTrendTable(points, series){
+  const head = series.map(s=>`<th>${s.label}</th>`).join('');
+  const rows = points.map(p=>`<tr><td>${formatTrendDate(p.date)}</td>${series.map(s=>`<td>${p[s.key]||0}</td>`).join('')}</tr>`).join('')
+    || `<tr><td colspan="${series.length+1}" class="muted">Không có dữ liệu</td></tr>`;
+  return `<table class="trend-table"><thead><tr><th>Thời điểm</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/** Panel dashboard theo topic: tong phan hoi + tieu cuc theo ngay/tuan/thang. */
+async function renderTopicTrendPanel(topicId){
+  const rawPoints = await fetchTopicTrend(topicId);
+  paintTopicTrendPanel(topicId, rawPoints);
+  updatePainPointSparklines(topicId, rawPoints);
+}
+
+/** Thay sparkline gia (buildTrendSeries) tren tung the Pain Point bang du lieu
+ * that theo ngay, loc theo topicLabel cua chinh pain point do (tu by_label). */
+function updatePainPointSparklines(topicId, rawPoints){
+  if(!rawPoints.length) return;
+  const pps = painPoints.filter(p=>p.topicId===topicId);
+  for(const p of pps){
+    if(!p.topicLabel) continue;
+    const series = rawPoints.map(pt => (pt.by_label && pt.by_label[p.topicLabel]) || 0);
+    if(series.every(v=>v===0)) continue;
+    const pathEl = document.getElementById(`pp-spark-path-${p.id}`);
+    if(pathEl) pathEl.setAttribute('d', sparklinePath(series,70,28));
+    const labelEl = document.getElementById(`pp-spark-label-${p.id}`);
+    if(labelEl) labelEl.textContent = series[series.length-1] > series[0] ? '↑ tăng' : '→ ổn định';
+  }
+}
+
+function paintTopicTrendPanel(topicId, rawPoints){
+  const el = document.getElementById('topic-trend-body');
+  if(!el || currentTopicId !== topicId) return; // nguoi dung da chuyen view khac
+  updateStatDelta(rawPoints);
+
+  if(!rawPoints.length){
+    el.innerHTML = `<div class="trend-empty">Chưa đủ dữ liệu lịch sử để so sánh — biểu đồ sẽ dày dần lên khi hệ thống tự động crawl thêm các chu kỳ tiếp theo (mỗi ${pipelineIntervalMinutes} phút).</div>`;
+    return;
+  }
+
+  const granularity = trendGranularity[topicId] || 'day';
+  const viewMode = trendViewMode[topicId] || 'chart';
+  const points = bucketTrendPoints(rawPoints, granularity);
+  const series = [
+    {key:'negative_count', color:'var(--coral)', label:'Tiêu cực'},
+    {key:'total_posts', color:'var(--text-faint)', label:'Tổng phản hồi'},
+  ];
+
+  const chips = ['day','week','month'].map(g=>
+    `<button class="chip ${granularity===g?'active':''}" onclick="setTrendGranularity('${topicId}','${g}')">${({day:'Ngày',week:'Tuần',month:'Tháng'})[g]}</button>`
+  ).join('');
+
+  const delta = trendDelta(rawPoints, granularity, points);
+  const deltaHTML = delta && delta.prev !== null
+    ? `<div class="trend-delta ${delta.pct>0?'up':delta.pct<0?'down':''}">${delta.pct>0?'↑':delta.pct<0?'↓':'→'} ${Math.abs(delta.pct)}% so với ${delta.label} (${delta.cur} vs ${delta.prev} phản hồi tiêu cực)</div>`
+    : `<div class="trend-delta muted">Chưa đủ dữ liệu 2 ${({day:'tuần',week:'tuần',month:'tháng'})[granularity]} gần nhất để so sánh</div>`;
+
+  const chartId = `topic-trend-${topicId}`;
+  const bodyHTML = viewMode === 'chart'
+    ? `<div class="trend-chart-wrap">${renderLineChart(chartId, points, series)}</div>`
+    : renderTrendTable(points, series);
+
+  el.innerHTML = `
+    <div class="trend-head">
+      <div class="trend-legend">
+        <span><span class="dot" style="background:var(--coral)"></span>Tiêu cực</span>
+        <span><span class="dot" style="background:var(--text-faint)"></span>Tổng phản hồi</span>
+      </div>
+      <div class="filter-bar" style="margin:0;">${chips}</div>
+    </div>
+    ${deltaHTML}
+    ${bodyHTML}
+    <button class="trend-link-btn" onclick="toggleTrendView('${topicId}')">${viewMode==='chart' ? 'Xem dạng bảng' : 'Xem biểu đồ'}</button>
+  `;
+}
+
+function setTrendGranularity(topicId, g){
+  trendGranularity[topicId] = g;
+  paintTopicTrendPanel(topicId, trendCache[topicId] || []);
+}
+function toggleTrendView(topicId){
+  trendViewMode[topicId] = (trendViewMode[topicId]||'chart')==='chart' ? 'table' : 'chart';
+  paintTopicTrendPanel(topicId, trendCache[topicId] || []);
+}
+
+function updateStatDelta(rawPoints){
+  const el = document.getElementById('stat-negative-delta');
+  if(!el) return;
+  const delta = trendDelta(rawPoints);
+  if(!delta || delta.prev === null){
+    el.className = 'delta flat';
+    el.textContent = rawPoints.length ? 'Chưa đủ 14 ngày để so sánh' : 'Chưa có dữ liệu lịch sử';
+    return;
+  }
+  el.className = `delta ${delta.pct>0?'up':delta.pct<0?'down':'flat'}`;
+  el.textContent = `${delta.pct>0?'↑':delta.pct<0?'↓':'→'} ${Math.abs(delta.pct)}% so với 7 ngày trước`;
+}
+
+/* =========================================================
+   VIEW: DASHBOARD (theo chủ đề)
+   ========================================================= */
+function sparklinePath(data, w, h){
+  const max = Math.max(...data), min = Math.min(...data);
+  const range = (max-min)||1;
+  const step = w/(data.length-1);
+  return data.map((v,i)=>{
+    const x = i*step;
+    const y = h - ((v-min)/range)*h;
+    return `${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+}
+
+function sevLabel(s){ return {high:'Cao', medium:'Trung bình', low:'Thấp'}[s]; }
+function verifyLabel(v){ return {verified:'ĐÃ XÁC MINH', unverified:'CHƯA XÁC MINH', needs_review:'CẦN XEM XÉT'}[v]; }
+function statusLabel(s){ return {open:'Mới', in_progress:'Đang xử lý', resolved:'Đã xử lý'}[s] || 'Mới'; }
+
+function stampHTML(pp, sm){
+  return `<div class="stamp ${sm?'stamp-sm':''} ${pp.verify}">
+    <div class="stamp-status">${verifyLabel(pp.verify)}</div>
+    <div class="stamp-pct">${pp.confidence}%</div>
+  </div>`;
+}
+
+let dashboardStatusFilter = 'all';
+function setDashboardStatusFilter(s){ dashboardStatusFilter = s; renderDashboard(currentTopicId); }
+
+function renderDashboard(topicId){
+  currentTopicId = topicId;
+  renderTopicNav();
+  const topic = topics.find(t=>t.id===topicId);
+  const pps = painPoints.filter(p=>p.topicId===topicId);
+  const totalPosts = pps.reduce((s,p)=>s+p.count,0);
+  const verifiedCount = pps.filter(p=>p.verify==='verified').length;
+  const highSev = pps.filter(p=>p.severity==='high').length;
+  const openCount = pps.filter(p=>p.status!=='resolved').length;
+
+  document.getElementById('breadcrumb').innerHTML = `Workspace <span class="sep">/</span> <b>${topic.name}</b>`;
+
+  const visiblePps = dashboardStatusFilter==='all' ? pps : pps.filter(p=>p.status===dashboardStatusFilter);
+  const statusChips = ['all','open','in_progress','resolved'].map(s=>
+    `<button class="chip ${dashboardStatusFilter===s?'active':''}" onclick="setDashboardStatusFilter('${s}')">${s==='all' ? `Tất cả (${pps.length})` : `${statusLabel(s)} (${pps.filter(p=>p.status===s).length})`}</button>`
+  ).join('');
+
+  const ppRows = visiblePps.map(p=>`
+    <div class="pp-card sev-${p.severity}" onclick="go('painpoint','${p.id}')">
+      <div class="pp-main">
+        <div class="pp-title">${p.title}</div>
+        <div class="pp-desc">${p.desc}</div>
+        <div class="pp-meta">
+          <span class="badge sev-${p.severity}">MỨC ĐỘ ${sevLabel(p.severity).toUpperCase()}</span>
+          <span class="badge status-${p.status}">${statusLabel(p.status).toUpperCase()}</span>
+          <span>${p.count} phản hồi</span>
+          <span id="pp-spark-label-${p.id}">${p.trend[p.trend.length-1] > p.trend[0] ? '↑ tăng':'→ ổn định'}</span>
+        </div>
+      </div>
+      <div class="pp-side">
+        <svg class="sparkline" viewBox="0 0 70 28">
+          <path id="pp-spark-path-${p.id}" d="${sparklinePath(p.trend,70,28)}" fill="none" stroke="${p.severity==='high'?'var(--coral)':p.severity==='medium'?'var(--amber)':'var(--teal)'}" stroke-width="2"/>
+        </svg>
+        ${stampHTML(p,true)}
+      </div>
+    </div>
+  `).join('') || `<div class="empty-state">Không có pain point nào phù hợp bộ lọc.</div>`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>${topic.name}</h1>
+        <p>Tự động crawl mỗi ${pipelineIntervalMinutes} phút · Nguồn dữ liệu thật: ${topic.sources.join(', ') || 'chưa cấu hình'}</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" onclick="openModal('${topic.id}')">Chỉnh sửa chủ đề</button>
+        <button class="btn btn-outline" id="crawl-now-btn" onclick="crawlNow('${topic.id}')">Crawl ngay</button>
+        <button class="btn btn-outline" onclick="go('posts','${topic.id}')">Xem phản hồi thu thập</button>
+        <button class="btn btn-accent" onclick="go('notifications')">Xem cảnh báo</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Phản hồi tiêu cực</div><div class="value">${totalPosts}</div><div class="delta flat" id="stat-negative-delta">Đang tải…</div></div>
+      <div class="stat-card"><div class="label">Pain point đang mở</div><div class="value">${openCount}/${pps.length}</div><div class="delta flat">${highSev} mức độ cao</div></div>
+      <div class="stat-card"><div class="label">Đã xác minh</div><div class="value">${verifiedCount}/${pps.length}</div><div class="delta down">Verification Agent</div></div>
+      <div class="stat-card"><div class="label">Ngưỡng cảnh báo</div><div class="value">${topic.threshold}</div><div class="delta flat">phản hồi / pain point</div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <h3>Xu hướng phản hồi theo thời gian</h3>
+      <div id="topic-trend-body"><div class="trend-empty">Đang tải dữ liệu xu hướng…</div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <h3>Pain point nổi bật</h3>
+      <div class="filter-bar">${statusChips}</div>
+      <div class="pp-list">${ppRows}</div>
+    </div>
+  `;
+  renderTopicTrendPanel(topicId);
+}
+
+/* =========================================================
+   VIEW: PAIN POINT DETAIL
+   ========================================================= */
+function renderPainPointDetail(id){
+  const pp = painPoints.find(p=>p.id===id);
+  const topic = topics.find(t=>t.id===pp.topicId);
+  currentTopicId = topic.id;
+  pendingPainPointStatus = null;
+  renderTopicNav();
+  document.getElementById('breadcrumb').innerHTML = `Workspace <span class="sep">/</span> <a onclick="go('dashboard','${topic.id}')" style="cursor:pointer">${topic.name}</a> <span class="sep">/</span> <b>Pain point</b>`;
+
+  const posts = pp.posts.map(q=>`<div class="quote">${q}</div>`).join('');
+  const sources = pp.sources.length
+    ? pp.sources.map(s=>`<div class="source-tag">📄 ${s}</div>`).join('')
+    : `<div class="source-tag muted">Chưa tìm được nguồn đối chiếu phù hợp</div>`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>${pp.title}</h1>
+        <p>${pp.desc}</p>
+        <span class="badge status-${pp.status}" style="margin-top:8px;">${statusLabel(pp.status).toUpperCase()}</span>
+      </div>
+      ${stampHTML(pp,false)}
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <div class="panel">
+          <h3>Xu hướng theo thời gian</h3>
+          <div id="pp-trend-body-${pp.id}"><div class="trend-empty">Đang tải dữ liệu xu hướng…</div></div>
+          <div class="pp-meta" style="margin-top:10px;">
+            <span class="badge sev-${pp.severity}">MỨC ĐỘ ${sevLabel(pp.severity).toUpperCase()}</span>
+            <span>${pp.count} phản hồi tổng cộng</span>
+            <span>Chủ đề: ${topic.name}</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Phản hồi tiêu biểu</h3>
+          <div class="quote-list">${posts}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>Xử lý</h3>
+          <div class="status-btn-row">
+            <button class="status-btn status-open ${pp.status==='open'?'active':''}" onclick="setPainPointStatusDraft('open')">Mới</button>
+            <button class="status-btn status-in_progress ${pp.status==='in_progress'?'active':''}" onclick="setPainPointStatusDraft('in_progress')">Đang xử lý</button>
+            <button class="status-btn status-resolved ${pp.status==='resolved'?'active':''}" onclick="setPainPointStatusDraft('resolved')">Đã xử lý</button>
+          </div>
+          <div class="field"><label>Người/đội phụ trách</label><input id="pp-assignee" type="text" value="${escapeHtml(pp.assignee || '')}" placeholder="VD: Đội CSKH, Nguyễn Văn A"></div>
+          <div class="field"><label>Ghi chú xử lý</label><textarea id="pp-notes" rows="3" placeholder="Đã làm gì để xử lý vấn đề này?">${escapeHtml(pp.resolutionNotes || '')}</textarea></div>
+          ${pp.resolvedAt ? `<div class="t-sub" style="margin-bottom:10px;">Đã xử lý lúc: ${formatRelativeTime(pp.resolvedAt)}</div>` : ''}
+          <button class="btn btn-accent" onclick="savePainPointRespond('${pp.id}')">Lưu cập nhật</button>
+        </div>
+        <div class="panel">
+          <h3>Đối chiếu xác minh</h3>
+          <div class="verify-row"><span>Trạng thái</span><span class="mono">${verifyLabel(pp.verify)}</span></div>
+          <div class="verify-row"><span>Độ tin cậy</span><span class="mono">${pp.confidence}%</span></div>
+          <div class="verify-row"><span>Consensus Agent</span><span class="mono">${pp.verify==='verified' ? 'Đồng thuận' : 'Cần xem xét'}</span></div>
+        </div>
+        <div class="panel">
+          <h3>Nguồn đối chiếu</h3>
+          ${sources}
+        </div>
+      </div>
+    </div>
+  `;
+  renderPainPointTrendPanel(pp);
+}
+
+async function renderPainPointTrendPanel(pp){
+  const rawPoints = await fetchTopicTrend(pp.topicId);
+  const el = document.getElementById(`pp-trend-body-${pp.id}`);
+  if(!el) return; // nguoi dung da chuyen trang khac
+  if(!rawPoints.length){
+    el.innerHTML = `<div class="trend-empty">Chưa đủ dữ liệu lịch sử để vẽ xu hướng riêng cho pain point này.</div>`;
+    return;
+  }
+  const label = pp.topicLabel;
+  const points = rawPoints.map(p => ({date: p.date, count: (label && p.by_label && p.by_label[label]) || 0}));
+  const color = pp.severity==='high' ? 'var(--coral)' : pp.severity==='medium' ? 'var(--amber)' : 'var(--teal)';
+  const chartId = `pp-trend-${pp.id}`;
+  el.innerHTML = `<div class="trend-chart-wrap">${renderLineChart(chartId, points, [{key:'count', color, label:'Phản hồi tiêu cực'}])}</div>`;
+}
+
+let pendingPainPointStatus = null;
+
+function setPainPointStatusDraft(status){
+  pendingPainPointStatus = status;
+  document.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.status-btn.status-${status}`).classList.add('active');
+}
+
+async function savePainPointRespond(id){
+  const pp = painPoints.find(p=>p.id===id);
+  const status = pendingPainPointStatus || pp.status;
+  const assignee = document.getElementById('pp-assignee').value.trim();
+  const resolution_notes = document.getElementById('pp-notes').value.trim();
+
+  try{
+    const res = await apiFetch(`/api/v1/pain-points/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status, assignee: assignee || null, resolution_notes: resolution_notes || null})
+    });
+    const updated = await res.json();
+    const idx = painPoints.findIndex(p=>p.id===id);
+    painPoints[idx] = normalizePainPoint(updated, painPoints[idx].topicId);
+    pendingPainPointStatus = null;
+    go('painpoint', id);
+  }catch(error){
+    console.error('Không thể lưu cập nhật xử lý', error);
+    alert('Không thể lưu cập nhật qua API. Hãy kiểm tra backend.');
+  }
+}
+
+/* =========================================================
+   VIEW: PHẢN HỒI THU THẬP (raw posts đã crawl thật, chưa qua tổng hợp)
+   ========================================================= */
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function sourceLabel(s){
+  return {google_play:'Google Play', app_store:'App Store', facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn'}[s] || s;
+}
+
+let postsCache = [];
+let postsFilterSource = 'all';
+
+async function renderPosts(topicId){
+  currentTopicId = topicId;
+  renderTopicNav();
+  const topic = topics.find(t=>t.id===topicId);
+  if(!topic){ go('workspace'); return; }
+  document.getElementById('breadcrumb').innerHTML =
+    `Workspace <span class="sep">/</span> <a onclick="go('dashboard','${topic.id}')" style="cursor:pointer">${topic.name}</a> <span class="sep">/</span> <b>Phản hồi thu thập</b>`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Phản hồi thu thập — ${topic.name}</h1>
+        <p>Nội dung gốc đã crawl thật từ ${topic.sources.map(sourceLabel).join(', ') || 'các nguồn đã cấu hình'} — dùng để tự đối chiếu với Pain Point mà hệ thống phát hiện.</p>
+      </div>
+    </div>
+    <div class="filter-bar" id="posts-filter-bar"></div>
+    <div id="posts-list"><div class="empty-state">Đang tải…</div></div>
+  `;
+
+  try{
+    const res = await apiFetch(`/api/v1/topics/${topicId}/posts?limit=200`);
+    postsCache = await res.json();
+  }catch(err){
+    console.error('Không lấy được danh sách phản hồi thu thập', err);
+    document.getElementById('posts-list').innerHTML = `<div class="empty-state">Không tải được dữ liệu. Kiểm tra backend.</div>`;
+    return;
+  }
+  postsFilterSource = 'all';
+  renderPostsList();
+}
+
+function setPostsFilter(s){ postsFilterSource = s; renderPostsList(); }
+
+function renderPostsList(){
+  const sources = ['all', ...new Set(postsCache.map(p=>p.source))];
+  const bar = document.getElementById('posts-filter-bar');
+  if(bar){
+    bar.innerHTML = sources.map(s=>
+      `<button class="chip ${postsFilterSource===s?'active':''}" onclick="setPostsFilter('${s}')">${s==='all' ? `Tất cả (${postsCache.length})` : `${sourceLabel(s)} (${postsCache.filter(p=>p.source===s).length})`}</button>`
+    ).join('');
+  }
+  const list = postsFilterSource==='all' ? postsCache : postsCache.filter(p=>p.source===postsFilterSource);
+  document.getElementById('posts-list').innerHTML = list.length
+    ? `<div class="quote-list">${list.map(p=>`
+        <div class="quote">
+          <div class="mono muted" style="font-size:11px; font-style:normal; display:flex; justify-content:space-between; gap:10px; margin-bottom:6px;">
+            <span>${sourceLabel(p.source)} · ${escapeHtml(p.author) || 'Ẩn danh'}</span>
+            <span>${formatRelativeTime(p.published_at)}</span>
+          </div>
+          ${escapeHtml(p.content)}
+        </div>
+      `).join('')}</div>`
+    : `<div class="empty-state">Chưa có phản hồi nào được crawl cho chủ đề này. Bấm "Crawl ngay" ở Dashboard, hoặc kiểm tra lại app_id đã cấu hình.</div>`;
+}
+
+/* =========================================================
+   VIEW: BÁO CÁO TỔNG QUAN (Report / Command Center - cross chủ đề)
+   ========================================================= */
+function computeReportSummaryFallback(){
+  const SLA_HOURS_FALLBACK = 48;
+  const now = Date.now();
+  let open_count = 0, in_progress_count = 0, resolved_count = 0, total_negative = 0, overdue_open_count = 0;
+  const resolutionHours = [];
+  let resolvedWithinSla = 0;
+
+  const by_topic = topics.map(t=>{
+    const pps = painPoints.filter(p=>p.topicId===t.id);
+    const t_open = pps.filter(p=>p.status==='open').length;
+    const t_inprog = pps.filter(p=>p.status==='in_progress').length;
+    const t_resolved = pps.filter(p=>p.status==='resolved').length;
+    const t_total = pps.reduce((s,p)=>s+p.count,0);
+    const t_high_open = pps.filter(p=>p.status!=='resolved' && p.severity==='high').length;
+    const t_avg_conf = pps.length ? (pps.reduce((s,p)=>s+p.confidence,0)/pps.length)/100 : 0;
+
+    open_count += t_open; in_progress_count += t_inprog; resolved_count += t_resolved; total_negative += t_total;
+
+    return {
+      topic_id: t.id, topic_name: t.name, total_negative: t_total,
+      open_count: t_open, in_progress_count: t_inprog, resolved_count: t_resolved,
+      high_severity_open: t_high_open, avg_confidence: t_avg_conf,
+    };
+  });
+
+  painPoints.forEach(p=>{
+    const createdAt = new Date(p.created_at || p.createdAt).getTime();
+    if(p.status==='resolved' && p.resolvedAt){
+      const hours = (new Date(p.resolvedAt).getTime() - createdAt) / 3600000;
+      if(!Number.isNaN(hours)){
+        resolutionHours.push(hours);
+        if(hours <= SLA_HOURS_FALLBACK) resolvedWithinSla++;
+      }
+    } else if(p.status!=='resolved' && !Number.isNaN(createdAt)){
+      const ageHours = (now - createdAt) / 3600000;
+      if(ageHours > SLA_HOURS_FALLBACK) overdue_open_count++;
+    }
+  });
+
+  return {
+    total_negative, open_count, in_progress_count, resolved_count, overdue_open_count,
+    avg_resolution_hours: resolutionHours.length ? Math.round(resolutionHours.reduce((a,b)=>a+b,0)/resolutionHours.length*10)/10 : null,
+    resolved_within_sla_pct: resolutionHours.length ? Math.round(resolvedWithinSla/resolutionHours.length*1000)/10 : null,
+    by_topic,
+  };
+}
+
+async function renderReport(){
+  renderTopicNav();
+  document.getElementById('breadcrumb').innerHTML = `<b>Báo cáo tổng quan</b>`;
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div><h1>Báo cáo tổng quan</h1><p>Toàn cảnh xử lý phản hồi tiêu cực trên tất cả chủ đề đang theo dõi — dùng để báo cáo cấp quản lý.</p></div>
+    </div>
+    <div id="report-body"><div class="empty-state">Đang tải…</div></div>
+  `;
+
+  let summary;
+  try{
+    const res = await apiFetch('/api/v1/report/summary');
+    summary = await res.json();
+  }catch(err){
+    console.warn('Không lấy được báo cáo tổng quan từ API, tính tạm trên dữ liệu hiện có', err);
+    summary = computeReportSummaryFallback();
+  }
+
+  const rows = summary.by_topic.map(t=>`
+    <tr onclick="currentTopicId='${t.topic_id}'; go('dashboard','${t.topic_id}')" style="cursor:pointer;">
+      <td>${t.topic_name}</td>
+      <td class="mono">${t.total_negative}</td>
+      <td class="mono">${t.open_count}</td>
+      <td class="mono">${t.in_progress_count}</td>
+      <td class="mono">${t.resolved_count}</td>
+      <td class="mono">${t.high_severity_open}</td>
+      <td class="mono">${Math.round(t.avg_confidence*100)}%</td>
+    </tr>
+  `).join('') || `<tr><td colspan="7"><div class="empty-state">Chưa có dữ liệu.</div></td></tr>`;
+
+  document.getElementById('report-body').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Tổng phản hồi tiêu cực</div><div class="value">${summary.total_negative}</div></div>
+      <div class="stat-card"><div class="label">Đang mở</div><div class="value">${summary.open_count}</div></div>
+      <div class="stat-card"><div class="label">Đang xử lý</div><div class="value">${summary.in_progress_count}</div></div>
+      <div class="stat-card"><div class="label">Đã xử lý</div><div class="value">${summary.resolved_count}</div></div>
+      <div class="stat-card"><div class="label">Quá hạn SLA</div><div class="value">${summary.overdue_open_count}</div><div class="delta ${summary.overdue_open_count>0?'up':'flat'}">${summary.overdue_open_count>0?'cần ưu tiên xử lý':'trong hạn'}</div></div>
+      <div class="stat-card"><div class="label">Thời gian xử lý TB</div><div class="value">${summary.avg_resolution_hours!=null ? summary.avg_resolution_hours+'h' : '—'}</div></div>
+      <div class="stat-card"><div class="label">Đúng hạn SLA</div><div class="value">${summary.resolved_within_sla_pct!=null ? summary.resolved_within_sla_pct+'%' : '—'}</div></div>
+    </div>
+    <div class="panel">
+      <h3>So sánh theo chủ đề</h3>
+      <div style="overflow-x:auto;">
+        <table class="report-table">
+          <thead><tr><th>Chủ đề</th><th>Tổng tiêu cực</th><th>Mới</th><th>Đang xử lý</th><th>Đã xử lý</th><th>Mức cao đang mở</th><th>Độ tin cậy TB</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   VIEW: NOTIFICATIONS
+   ========================================================= */
+let notifFilter = 'all';
+function setNotifFilter(f){ notifFilter = f; renderNotifications(); }
+
+function renderNotifications(){
+  document.getElementById('breadcrumb').innerHTML = `<b>Trung tâm thông báo</b>`;
+  document.getElementById('notif-dot').style.display = notifications.some(n=>!n.read) ? 'block':'none';
+
+  let list = notifications;
+  if(notifFilter!=='all') list = list.filter(n=>n.topicId===notifFilter);
+
+  const rows = list.map(n=>{
+    const topic = topics.find(t=>t.id===n.topicId);
+    return `
+    <div class="notif-row ${n.read?'':'unread'}" onclick="go('painpoint','${n.ppId}')">
+      <div class="notif-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      </div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${topic.name} · ${n.msg}</div>
+      </div>
+      <div class="notif-time">${n.time}</div>
+    </div>`;
+  }).join('') || `<div class="empty-state">Không có cảnh báo nào phù hợp bộ lọc.</div>`;
+
+  const chips = [`<button class="chip ${notifFilter==='all'?'active':''}" onclick="setNotifFilter('all')">Tất cả</button>`]
+    .concat(topics.map(t=>`<button class="chip ${notifFilter===t.id?'active':''}" onclick="setNotifFilter('${t.id}')">${t.name}</button>`)).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div><h1>Trung tâm thông báo</h1><p>Lịch sử cảnh báo trên tất cả chủ đề, cùng tuỳ chọn kênh nhận và tạm tắt theo chủ đề.</p></div>
+    </div>
+    <div class="filter-bar">${chips}</div>
+    ${rows}
+  `;
+}
+
+/* =========================================================
+   VIEW: SETTINGS
+   ========================================================= */
+function renderSettings(){
+  document.getElementById('breadcrumb').innerHTML = `<b>Cài đặt tài khoản</b>`;
+  document.getElementById('content').innerHTML = `
+    <div class="page-head"><div><h1>Cài đặt tài khoản</h1><p>Quản lý thông tin cá nhân, mật khẩu và tuỳ chọn thông báo theo từng chủ đề.</p></div></div>
+    <div class="settings-grid">
+      <div class="settings-nav">
+        <button class="active">Thông tin cá nhân</button>
+        <button>Đổi mật khẩu</button>
+        <button>Tuỳ chọn thông báo</button>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>Thông tin cá nhân</h3>
+          <div class="form-grid">
+            <div class="field"><label>Họ và tên</label><input type="text" value="Phạm Minh"></div>
+            <div class="field"><label>Email</label><input type="email" value="pm@techcombank-demo.vn"></div>
+            <div class="field"><label>Vai trò</label><input type="text" value="Product Manager"></div>
+            <div class="field"><label>Số điện thoại</label><input type="text" value="09xx xxx xxx"></div>
+          </div>
+          <button class="btn btn-accent">Lưu thay đổi</button>
+        </div>
+        <div class="panel">
+          <h3>Đổi mật khẩu</h3>
+          <div class="form-grid">
+            <div class="field"><label>Mật khẩu hiện tại</label><input type="password"></div>
+            <div class="field"></div>
+            <div class="field"><label>Mật khẩu mới</label><input type="password"></div>
+            <div class="field"><label>Xác nhận mật khẩu mới</label><input type="password"></div>
+          </div>
+          <button class="btn btn-outline">Cập nhật mật khẩu</button>
+        </div>
+        <div class="panel">
+          <h3>Tuỳ chọn thông báo theo chủ đề</h3>
+          ${topics.map(t=>`
+            <div class="toggle-row">
+              <div><div class="t-label">${t.name}</div><div class="t-sub">Email và thông báo trên website</div></div>
+              <div class="switch ${t.notif?'on':''}" onclick="toggleTopicNotif('${t.id}', this)"></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function toggleTopicNotif(id, el){
+  const t = topics.find(x=>x.id===id);
+  t.notif = !t.notif;
+  el.classList.toggle('on');
+}
+
+/* =========================================================
+   MODAL: Tạo / chỉnh sửa chủ đề
+   ========================================================= */
+function toggleSourceConfigRow(source, enabled){
+  const rowId = source === 'google_play' ? 'tm-gp-row' : 'tm-as-row';
+  document.getElementById(rowId).style.display = enabled ? '' : 'none';
+}
+
+function openModal(topicId){
+  editingTopicId = topicId || null;
+  const modal = document.getElementById('topic-modal');
+  const title = document.getElementById('topic-modal-title');
+  const gpCheckbox = document.querySelector('#topic-modal .checkbox-item input[value="google_play"]');
+  const asCheckbox = document.querySelector('#topic-modal .checkbox-item input[value="app_store"]');
+  if(topicId){
+    const t = topics.find(x=>x.id===topicId);
+    const sourceConfigs = t.source_configs || {};
+    title.textContent = `Chỉnh sửa: ${t.name}`;
+    document.getElementById('tm-name').value = t.name;
+    document.getElementById('tm-keywords').value = t.keywords.join(', ');
+    document.getElementById('tm-threshold').value = t.threshold;
+    document.querySelectorAll('#topic-modal .checkbox-item input:not(:disabled)').forEach(cb=>{
+      cb.checked = t.sources.includes(cb.value);
+    });
+    document.getElementById('tm-gp-appid').value = sourceConfigs.google_play?.app_id || '';
+    document.getElementById('tm-as-appid').value = sourceConfigs.app_store?.app_id || '';
+    document.getElementById('tm-as-country').value = sourceConfigs.app_store?.country || 'vn';
+    document.getElementById('tm-switch').classList.toggle('on', t.notif);
+  } else {
+    title.textContent = 'Tạo chủ đề mới';
+    document.getElementById('tm-name').value = '';
+    document.getElementById('tm-keywords').value = '';
+    document.getElementById('tm-threshold').value = 10;
+    document.querySelectorAll('#topic-modal .checkbox-item input:not(:disabled)').forEach((cb,i)=>{ cb.checked = i<2; });
+    document.getElementById('tm-gp-appid').value = '';
+    document.getElementById('tm-as-appid').value = '';
+    document.getElementById('tm-as-country').value = 'vn';
+    document.getElementById('tm-switch').classList.add('on');
+  }
+  toggleSourceConfigRow('google_play', gpCheckbox ? gpCheckbox.checked : true);
+  toggleSourceConfigRow('app_store', asCheckbox ? asCheckbox.checked : true);
+  modal.classList.add('active');
+}
+function closeModal(){ document.getElementById('topic-modal').classList.remove('active'); }
+
+async function saveTopic(){
+  const name = document.getElementById('tm-name').value.trim();
+  if(!name){ alert('Vui lòng nhập tên chủ đề.'); return; }
+  const keywords = document.getElementById('tm-keywords').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const sources = Array.from(document.querySelectorAll('#topic-modal .checkbox-item input:checked')).map(cb=>cb.value);
+  const threshold = parseInt(document.getElementById('tm-threshold').value) || 10;
+  const notif = document.getElementById('tm-switch').classList.contains('on');
+
+  const gpAppId = document.getElementById('tm-gp-appid').value.trim();
+  const asAppId = document.getElementById('tm-as-appid').value.trim();
+  const asCountry = document.getElementById('tm-as-country').value.trim() || 'vn';
+
+  const source_configs = {};
+  if(sources.includes('google_play') && gpAppId) source_configs.google_play = {app_id: gpAppId};
+  if(sources.includes('app_store') && asAppId) source_configs.app_store = {app_id: asAppId, country: asCountry};
+
+  const missingConfig = sources.filter(s => (s === 'google_play' || s === 'app_store') && !source_configs[s]);
+  if(missingConfig.length){
+    const proceed = confirm(
+      `Chưa nhập app_id cho: ${missingConfig.join(', ')}. Nguồn này sẽ không crawl được dữ liệu thật cho đến khi bạn bổ sung app_id. Vẫn lưu chủ đề?`
+    );
+    if(!proceed) return;
+  }
+
+  try{
+    const payload = {
+      name,
+      keywords,
+      sources,
+      source_configs,
+      alert_threshold: threshold,
+      notifications_enabled: notif
+    };
+
+    await apiFetch('/api/v1/topics', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    closeModal();
+    await loadWorkspaceData();
+  }catch(error){
+    console.error('Không thể tạo chủ đề mới', error);
+    alert('Không thể lưu chủ đề qua API. Hãy kiểm tra backend.');
+  }
+}
+
+async function crawlNow(topicId){
+  const btn = document.getElementById('crawl-now-btn');
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Đang crawl…'; }
+  try{
+    const res = await apiFetch(`/api/v1/topics/${topicId}/run-pipeline`, {method: 'POST'});
+    const stats = await res.json();
+    await loadWorkspaceData();
+    go('dashboard', topicId);
+    alert(
+      `Đã crawl xong dữ liệu thật:\n` +
+      `- Phản hồi thu được: ${stats.posts_crawled}\n` +
+      `- Phản hồi mới (đã loại trùng): ${stats.posts_saved_new}\n` +
+      `- Pain point phát hiện: ${stats.pain_points_found}\n` +
+      `- Cảnh báo đã gửi: ${stats.notifications_sent}`
+    );
+  }catch(error){
+    console.error('Không thể chạy pipeline', error);
+    alert('Không thể chạy pipeline qua API. Hãy kiểm tra backend và app_id đã cấu hình cho chủ đề này.');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+  }
+}
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+function showForgot(){ document.getElementById('login-panel').style.display='none'; document.getElementById('forgot-panel').style.display='block'; }
+function showLogin(){ document.getElementById('login-panel').style.display='block'; document.getElementById('forgot-panel').style.display='none'; }
+
+const SESSION_KEY = 'sentinel_session_active';
+
+async function doLogin(){
+  localStorage.setItem(SESSION_KEY, '1');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.add('active');
+  await loadWorkspaceData();
+}
+
+/* init: neu da dang nhap truoc do (luu trong localStorage), vao thang workspace
+   thay vi hien lai man dang nhap - tranh bi "dang xuat" moi khi trang bi reload
+   (vd: do live-reload cua dev server phat hien thay doi file trong luc crawl chay). */
+if(localStorage.getItem(SESSION_KEY) === '1'){
+  doLogin();
+} else {
+  renderTopicNav();
+}
+</script>
+</body>
+</html>

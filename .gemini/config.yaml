@@ -1,0 +1,2 @@
+hooks:
+  on_response: "python scripts/log_hook.py gemini '{\"event\":\"on_response\"}'"
