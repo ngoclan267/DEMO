@@ -1,79 +1,68 @@
-"""FastAPI application entry point."""
-import logging
-import sys
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-
-
-def _ensure_project_root_on_path() -> None:
-    """Ensure the repository root is importable when running this file directly."""
-    project_root = Path(__file__).resolve().parent.parent
-    project_root_str = str(project_root)
-    if project_root_str not in sys.path:
-        sys.path.insert(0, project_root_str)
-
-
-_ensure_project_root_on_path()
-
-from src.config import get_settings
 from src.api.routes import router
-from src.db.repository import init_and_seed
-from src.scheduler import start_scheduler, stop_scheduler
+from src.api.routes_admin import router as admin_router
+from src.api.routes_auth import router as auth_router
+from src.api.routes_billing import router as billing_router
+from src.api.routes_contact import router as contact_router
+from src.api.routes_dashboard import router as dashboard_router
+from src.api.routes_notifications import router as notifications_router
+from src.api.routes_topics import router as topics_router
+from src.config import get_settings
+from src.logging_config import configure_logging
 
-settings = get_settings()
+# Phải gọi TRƯỚC khi bất kỳ module nào khác gọi logging.getLogger(...).info(...) — thiếu dòng này,
+# mọi log INFO trong toàn bộ service (kể cả "Đã gửi email tới..." trong
+# src/notifications/email.py) bị nuốt im lặng, chỉ log ERROR+ mới hiện (qua
+# logging.lastResort mặc định của Python khi chưa cấu hình handler nào). scheduler.py đã tự gọi
+# đúng ở entrypoint riêng của nó nên không bị ảnh hưởng — main.py (uvicorn) thì chưa, tới giờ mới
+# phát hiện khi debug vụ email Brevo không thấy log xác nhận.
+configure_logging()
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
-    """Tao SQLite schema, seed cac Topic that (app_id da xac minh) neu DB con rong,
-    va bat scheduler tu dong crawl dinh ky (co the tat qua ENABLE_SCHEDULER=false)."""
-    init_and_seed()
-    start_scheduler()
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    print(f"Starting {settings.app_name} in {settings.app_env} mode")
     yield
-    stop_scheduler()
+    print("Shutting down...")
 
 
 app = FastAPI(
-    title=settings.app_name,
-    description="Multi-Agent Social Listening platform - phat hien som phan hoi tieu cuc cho doanh nghiep.",
-    version="1.0.0-mvp",
+    title="AI20K Agent",
+    description="AI Agent built with LangGraph",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
+settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins.split(","),
+    # Dev-only: CORS_ORIGINS là 1 danh sách cố định (mặc định chỉ cổng 3000), nhưng `next dev` tự
+    # đổi sang cổng khác (3001, 3005...) bất cứ khi nào cổng mặc định đã bị chiếm — lúc đó mọi
+    # request từ frontend bị CORS chặn âm thầm (trình duyệt chặn trước khi request thật được gửi,
+    # nên backend không hề log lỗi gì, rất khó nhận ra nguyên nhân thật). Chỉ áp dụng ở development,
+    # không nới lỏng CORS ở production.
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$" if settings.app_env == "development" else None,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix=settings.api_prefix)
+app.include_router(router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(topics_router, prefix="/api/v1")
+app.include_router(dashboard_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(billing_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
+app.include_router(contact_router, prefix="/api/v1")
 
 
-@app.get("/")
-def root():
-    return {"name": settings.app_name, "status": "running", "docs": "/docs"}
-
-
-if __name__ == "__main__":
-    import os
-    import socket
-
-    import uvicorn
-
-    def _get_server_port(default_port: int = 8000) -> int:
-        requested_port = int(os.getenv("PORT", str(default_port)))
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            try:
-                sock.bind(("0.0.0.0", requested_port))
-                return requested_port
-            except OSError:
-                sock.bind(("0.0.0.0", 0))
-                return sock.getsockname()[1]
-
-    uvicorn.run("src.main:app", host="0.0.0.0", port=_get_server_port(), reload=False)
+@app.get("/health")
+async def health():
+    return {"status": "ok", "env": settings.app_env}

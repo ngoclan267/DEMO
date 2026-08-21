@@ -1,21 +1,29 @@
-import os
-import tempfile
+from unittest.mock import AsyncMock
 
 import pytest
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 
-# Test dung SQLite tam thoi rieng, khong dung chung file DB that (data/social_listening.db)
-# de tests khong lam bay/trung du lieu crawl that va nguoc lai.
-_tmp_db_fd, _tmp_db_path = tempfile.mkstemp(suffix=".db")
-os.close(_tmp_db_fd)
-os.environ["SQLITE_PATH"] = _tmp_db_path
-# Tat scheduler trong test: khong de test tu dong goi crawl mang that.
-os.environ["ENABLE_SCHEDULER"] = "false"
-
-from fastapi.testclient import TestClient
 from src.main import app
 
 
+@pytest_asyncio.fixture
+async def client():
+    """Async HTTP client for testing API endpoints."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
 @pytest.fixture
-def client():
-    with TestClient(app) as c:
-        yield c
+def mock_llm():
+    """Mock LLM to avoid calling OpenAI during tests.
+
+    Usage in test:
+        def test_something(mock_llm):
+            # LLM calls will return mock response instead of hitting OpenAI
+            ...
+    """
+    mock = AsyncMock()
+    mock.ainvoke.return_value = AsyncMock(content="Mocked LLM response")
+    return mock

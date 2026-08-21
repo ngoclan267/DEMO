@@ -1,6 +1,0 @@
-{
-  "hooks": {
-    "on_tool_use": "python scripts/log_hook.py claude '{\"event\":\"tool_use\"}'",
-    "on_session_end": "python scripts/log_hook.py claude '{\"event\":\"session_end\"}'"
-  }
-}

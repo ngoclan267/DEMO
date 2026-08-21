@@ -1,29 +1,18 @@
-"""
-Shared state schema for the LangGraph pipeline.
-Flow (see docs/architecture_diagram.md):
-Collector -> Processing -> Classification -> Verification -> Consensus -> PainPoint -> Notification
-"""
-from typing import Annotated, TypedDict
-from operator import add
+from __future__ import annotations
 
-from src.models.schemas import Post, Prediction, VerificationResult, ConsensusResult, PainPoint, Notification
+from typing import TypedDict
 
 
 class AgentState(TypedDict, total=False):
-    topic_id: str
-    keywords: list[str]
-    sources: list[str]
-    source_configs: dict[str, dict]
+    """State schema cho LangGraph agent.
 
-    raw_posts: Annotated[list[Post], add]
-    clean_posts: Annotated[list[Post], add]
-    predictions: Annotated[list[Prediction], add]
+    Mỗi node đọc và ghi vào state này.
+    total=False cho phép tất cả fields là optional.
+    """
 
-    negative_predictions: list[Prediction]
-    verifications: Annotated[list[VerificationResult], add]
-    consensus_results: Annotated[list[ConsensusResult], add]
-
-    pain_points: Annotated[list[PainPoint], add]
-    notifications: Annotated[list[Notification], add]
-
-    errors: Annotated[list[str], add]
+    query: str
+    context: str
+    analysis: str
+    response: str
+    error: str
+    metadata: dict

@@ -1,0 +1,93 @@
+# Render Blueprint — tạo Postgres + API (web) + scheduler (worker) trong 1 lần "New > Blueprint".
+# Khi tạo Blueprint trên Render, chọn repo này và branch "lan-dev" (nút chọn branch nằm ở bước kết
+# nối repo trên dashboard) — 2 service bên dưới cũng khai báo branch: lan-dev tường minh để chắc
+# chắn không bị fallback về nhánh mặc định của repo (thường là main) nếu Render đổi hành vi mặc định.
+#
+# LƯU Ý:
+# - Tên plan (starter/standard...) có thể đã đổi trên Render — kiểm tra lại tên plan hiện tại trong
+#   dashboard trước khi Apply, sửa lại field `plan` bên dưới nếu cần.
+# - Các biến đánh `sync: false` là secret hoặc phụ thuộc domain thật (chưa biết lúc tạo blueprint) —
+#   Render sẽ hỏi bạn điền tay lúc Apply, hoặc để trống rồi điền sau trong phần Environment của
+#   từng service. Xem giá trị cần điền trong .env local (copy y hệt, trừ 3 biến ghi chú riêng).
+
+envVarGroups:
+  - name: p120-shared
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Bắt buộc đặt CỐ ĐỊNH (không copy từ .env local vì local đang để trống) — tạo bằng:
+      #   python -c "import secrets; print(secrets.token_urlsafe(32))"
+      - key: SECRET_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_EXTRA_API_KEYS
+        sync: false
+      - key: APIFY_API_TOKEN
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: VNPAY_TMN_CODE
+        sync: false
+      - key: VNPAY_HASH_SECRET
+        sync: false
+      # Sandbox mặc định (đúng như .env.example) — đổi sang https://pay.vnpay.vn/vpcpay.html khi có
+      # merchant thật.
+      - key: VNPAY_PAYMENT_URL
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      # 3 biến dưới đây phụ thuộc domain thật sau khi deploy xong — điền tạm giá trị bất kỳ lúc
+      # Apply, quay lại sửa đúng domain Vercel/Render thật sau khi cả 2 bên đã lên (xem hướng dẫn
+      # phía sau trong chat).
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: BACKEND_BASE_URL
+        sync: false
+
+databases:
+  - name: p120-db
+    databaseName: painpoints
+    user: p120
+    plan: starter
+
+services:
+  - type: web
+    name: p120-api
+    env: docker
+    branch: lan-dev
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVarGroups:
+      - p120-shared
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: p120-db
+          property: connectionString
+
+  - type: worker
+    name: p120-scheduler
+    env: docker
+    branch: lan-dev
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: python -m src.pipeline.scheduler
+    plan: starter
+    envVarGroups:
+      - p120-shared
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: p120-db
+          property: connectionString

@@ -1,14 +1,42 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.9.2
-pydantic-settings==2.5.2
-langgraph==0.2.34
-langchain-core==0.3.5
-google-genai==0.3.0
-sqlalchemy==2.0.35
-asyncpg==0.29.0
-python-dotenv==1.0.1
-httpx==0.27.2
-google-play-scraper==1.2.7
-email-validator==2.2.0
-apscheduler==3.11.3
+# Core
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.0
+
+# AI / LangChain
+langchain>=0.3.0
+langchain-openai>=0.3.0
+langchain-google-genai>=2.0.0
+langgraph>=0.2.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.14.0
+psycopg2-binary>=2.9.0
+
+# Data pipeline (Collector + Processing Agent)
+google-play-scraper>=1.2.6
+langdetect>=1.0.9
+apscheduler>=3.10.4
+beautifulsoup4>=4.12.0
+# zoneinfo (stdlib) cần package này để có dữ liệu IANA timezone trên Windows (không có sẵn như
+# Linux/macOS) — dùng để quy đổi log/lịch scheduler về giờ Việt Nam (xem src/logging_config.py).
+tzdata>=2024.1
+
+# Auth / Notification Service
+# (bcrypt used directly, not via passlib — passlib's bcrypt backend is broken against bcrypt>=4.0:
+# https://github.com/pyca/bcrypt/issues/684, confirmed locally, passlib appears unmaintained)
+bcrypt>=4.0.0
+python-jose[cryptography]>=3.3.0
+email-validator>=2.0.0
+
+# Vector Store (uncomment as needed)
+# chromadb>=0.5.0
+
+# Dev tools
+ruff>=0.8.0
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0

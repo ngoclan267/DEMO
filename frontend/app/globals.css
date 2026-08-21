@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f6f9fd;
+  --color-cream-2: #e6f0fb;
+  --color-bone: #cfe0f3;
+  --color-ink: #0b1220;
+  --color-ink-2: #182033;
+  --color-muted: #5a6578;
+  --color-line: #cdd5e1;
+
+  --color-amber-glow: #b45309;
+  --color-leaf: #3f7d4e;
+  --color-sky: #3b6ea5;
+  --color-rose: #c81e1e;
+
+  /* Token NAME giữ nguyên như trước (dùng khắp app qua bg-brand-600, text-brand-700...) — chỉ đổi
+     GIÁ TRỊ sang bảng coral/xanh của thiết kế tham khảo, để không phải sửa lại mọi nơi đang dùng
+     class này. */
+  --color-brand-50: #eef5fc;
+  --color-brand-100: #dcebfa;
+  --color-brand-500: #1d5fa8;
+  --color-brand-600: #184c87;
+  --color-brand-700: #123a68;
+
+  /* Cùng lý do trên — 3 nhóm token nghiệp vụ này giữ tên, đổi giá trị cho hợp tông mới. */
+  --color-sentiment-positive: #3f7d4e;
+  --color-sentiment-neutral: #5a6578;
+  --color-sentiment-negative: #c81e1e;
+
+  --color-severity-low: #3b6ea5;
+  --color-severity-medium: #b45309;
+  --color-severity-high: #c81e1e;
+
+  --color-status-verified: #3f7d4e;
+  --color-status-unverified: #5a6578;
+  --color-status-needs-review: #b45309;
+
+  --font-display: var(--font-display-family), "Be Vietnam Pro", system-ui, sans-serif;
+  --font-sans: var(--font-sans-family), "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: var(--font-mono-family), "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    background:
+      radial-gradient(1200px 620px at 12% -8%, rgba(59, 110, 165, 0.16), transparent 55%),
+      radial-gradient(900px 520px at 100% 0%, rgba(29, 95, 168, 0.09), transparent 50%),
+      linear-gradient(180deg, #ffffff 0%, var(--color-cream) 45%, var(--color-cream-2) 100%);
+    background-attachment: fixed;
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-brand-100);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-[1320px] px-5 md:px-10;
+  }
+
+  .display-xl {
+    font-family: var(--font-display);
+    @apply tracking-[-0.03em] leading-[0.98];
+  }
+
+  .eyebrow {
+    @apply text-[12px] font-medium text-[var(--color-brand-700)];
+  }
+
+  .surface-cream {
+    background: var(--color-cream-2);
+  }
+
+  .divider-line {
+    background: var(--color-line);
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-[var(--color-line)] bg-white/80 px-3 py-1 text-[12.5px] font-medium text-[var(--color-ink-2)];
+  }
+
+  .btn-primary {
+    @apply inline-flex h-11 min-h-11 items-center justify-center gap-1.5 overflow-hidden rounded-md bg-[var(--color-brand-500)] px-5 text-[14px] font-semibold text-white no-underline transition-colors hover:bg-[var(--color-brand-600)] active:translate-y-[1px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)];
+    -webkit-appearance: none;
+    appearance: none;
+    background-clip: padding-box;
+  }
+
+  .btn-ghost {
+    @apply inline-flex h-11 min-h-11 items-center justify-center gap-1.5 overflow-hidden rounded-md border border-[var(--color-ink)]/15 bg-transparent px-5 text-[14px] font-semibold text-[var(--color-ink)] no-underline transition-colors hover:bg-[var(--color-ink)]/5 active:translate-y-[1px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand-500)];
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .card-soft {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+
+  .input-base {
+    @apply h-12 w-full rounded-xl border border-[var(--color-line)] bg-white px-4 text-[14px] text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand-500)] focus:ring-2 focus:ring-[var(--color-brand-500)]/20;
+  }
+}
+
+@layer utilities {
+  .mask-fade-y {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Chart palette (dataviz skill) — validated categorical slots 1 (blue) + 8 (red) for the trend
+   chart's 2 series (Tổng số / Tiêu cực), re-validated against nền mới (surface #ffffff) khi đổi
+   sang thiết kế cream/coral. See references/palette.md in the dataviz skill.
+   Cố định light theme — phần còn lại của app chưa hỗ trợ dark mode, nên chart tự đổi theo
+   prefers-color-scheme của hệ điều hành sẽ tạo ra giao diện lệch tông. Khi nào app có toggle dark
+   mode thật thì thêm lại có kiểm soát. */
+.viz-root {
+  color-scheme: light;
+  --viz-surface: #ffffff;
+  --viz-text-primary: var(--color-ink);
+  --viz-text-secondary: var(--color-ink-2);
+  --viz-muted: var(--color-muted);
+  --viz-grid: var(--color-line);
+  --viz-axis: var(--color-line);
+  --viz-series-total: #1d5fa8;
+  --viz-series-negative: #c81e1e;
+
+  /* Slot 1-6 của bảng màu categorical mặc định (palette.md), thứ tự CỐ ĐỊNH — dùng cho biểu đồ
+   * phần-trong-tổng-thể nhiều lát (vd PartToWholePie.tsx). Validated lại với nền trắng:
+   * node scripts/validate_palette.js "#2a78d6,#eb6834,#1baf7a,#eda100,#e87ba4,#008300"
+   *   --mode light --surface "#ffffff" -> PASS (contrast WARN yêu cầu legend/nhãn trực tiếp hoặc
+   * bảng số liệu đi kèm — PartToWholePie có cả 2). */
+  --viz-cat-1: #2a78d6;
+  --viz-cat-2: #eb6834;
+  --viz-cat-3: #1baf7a;
+  --viz-cat-4: #eda100;
+  --viz-cat-5: #e87ba4;
+  --viz-cat-6: #008300;
+}

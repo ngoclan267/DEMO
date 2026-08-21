@@ -1,39 +1,46 @@
-version: "3.9"
+version: "3.8"
 
+# DATABASE_URL không còn override ở đây — cả backend và scheduler đọc thẳng từ .env (Supabase),
+# giống hệt Railway (env_file .env local trỏ cùng 1 Supabase DB mà p120-api/p120-scheduler trên
+# Railway đang dùng), nên dữ liệu và luồng chạy local khớp với production. Không còn container
+# Postgres local — docker/init-test-db.sql (DB "painpoints_test" cho tests/test_db/test_models.py)
+# vì vậy không còn được auto-tạo; set TEST_DATABASE_URL trỏ tới 1 Postgres khác nếu cần chạy nhóm
+# test đó (module tự skip nếu không kết nối được, không lỗi cứng).
 services:
-  api:
-    build: .
-    container_name: social-listening-api
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # --reload theo dõi thay đổi file TRONG container — chỉ có tác dụng vì ./src được mount đè lên
+    # bản COPY lúc build bên dưới (volumes). Không có mount này, --reload vẫn chạy nhưng chẳng bao
+    # giờ thấy file đổi (container chỉ có bản chụp mã nguồn tại lúc `docker build`, sửa file trên
+    # máy host KHÔNG tự động vào container — đây chính là nguyên nhân 2 lỗi thật đã gặp: sửa code
+    # xong test vẫn thấy hành vi/lỗi CŨ vì container chưa hề chạy code mới cho tới khi build lại tay).
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
-    env_file: .env.example
-    depends_on:
-      - db
-    restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
-    container_name: social-listening-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: social_listening
+    env_file:
+      - .env
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - ./data:/app/data
+      - ./src:/app/src
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  frontend:
-    image: nginx:alpine
-    container_name: social-listening-frontend
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m src.pipeline.scheduler
+    env_file:
+      - .env
+    # Không có cơ chế reload tự động cho script chạy nền dài hạn (khác uvicorn --reload ở backend)
+    # — mount source để LỠ có sửa code thì chỉ cần `docker compose restart scheduler` (vài giây) là
+    # đủ, không cần build lại image (build image mất tới cả phút vì cài lại dependency).
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-    ports:
-      - "3000:80"
-    depends_on:
-      - api
+      - ./src:/app/src
     restart: unless-stopped
-
-volumes:
-  pgdata:

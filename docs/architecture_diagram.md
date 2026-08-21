@@ -1,40 +1,38 @@
-# Kien truc he thong (chuan SMCC: Listen -> Analyze -> Respond -> Report)
+# Architecture Diagram
+
+## System Overview
 
 ```mermaid
-flowchart TD
-    subgraph LISTEN["LISTEN"]
-        A[Nguon du lieu that\nGoogle Play / App Store / LinkedIn] --> B[Collector Agent]
-        B --> C[(Database)]
-    end
-
-    subgraph ANALYZE["ANALYZE"]
-        C --> D[Processing Agent]
-        D --> E[Classification Agent]
-        E --> F[Verification Agent]
-        F --> G[Consensus Agent]
-        G --> H[Pain Point Agent]
-    end
-
-    subgraph RESPOND["RESPOND"]
-        H --> I[Notification Service]
-        H --> P["PATCH /pain-points/{id}\nTrang thai / nguoi phu trach / ghi chu xu ly"]
-    end
-
-    subgraph REPORT["REPORT"]
-        I --> J[Dashboard theo chu de]
-        I --> K[Email]
-        P --> R["GET /report/summary\nKPI / SLA / so sanh cross-brand"]
-    end
-
-    R -.chu ky moi.-> B
+graph TB
+    User([User]) --> UI[Frontend<br/>React/Next.js]
+    UI -->|REST API| API[FastAPI Backend]
+    API --> Agent[LangGraph Agent]
+    Agent --> LLM[LLM Service<br/>GPT-4o / Gemini]
+    Agent --> Tools[Agent Tools]
+    Tools --> DB[(Database)]
+    Agent --> VS[Vector Store<br/>ChromaDB]
 ```
 
-Chu ky Listen->Analyze: 15-30 phut/lan (near real-time) - xem PRD muc 10.
-Respond/Report la lop nghiep vu con nguoi thao tac tren ket qua pipeline
-(khong phai mot Agent), xem PRD muc 10 va `src/api/routes.py`.
+## Agent Flow
 
-## LangGraph state graph
+```mermaid
+graph LR
+    START((Start)) --> Input[Parse Input]
+    Input --> Analyze[Analyze Query]
+    Analyze --> Decide{Need Tool?}
+    Decide -->|Yes| CallTool[Call Tool]
+    CallTool --> Analyze
+    Decide -->|No| Generate[Generate Response]
+    Generate --> END((End))
+```
 
-`src/agents/graph.py` bien luong tren thanh mot `StateGraph` voi state schema
-dinh nghia trong `src/agents/state.py`. Moi node tuong ung mot agent, nhan va
-tra ve mot phan cua `AgentState`.
+## Component Details
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| Frontend | React/Next.js | User interface |
+| Backend | FastAPI | API server |
+| Agent | LangGraph | AI agent orchestration |
+| LLM | OpenAI/Gemini | Language model |
+| Database | PostgreSQL/SQLite | Data persistence |
+| Vector Store | ChromaDB | RAG / embeddings |

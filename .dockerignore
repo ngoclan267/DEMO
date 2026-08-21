@@ -1,0 +1,22 @@
+.git
+.gitignore
+.env
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+docs/
+presentation/
+eval/
+*.md
+!requirements.txt
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Backend/scheduler image chỉ cần frontend_base_url (1 chuỗi cấu hình, xem src/config.py) — không
+# bao giờ chạy code frontend. frontend/node_modules có 27k+ file nhỏ; COPY + chown -R toàn bộ cây
+# này vào image Python là nguyên nhân chính khiến build chậm bất thường (~53 phút riêng bước
+# chown) trên Windows/WSL2 bind-mount, và có thể là nguyên nhân khiến Docker Desktop bị treo.
+frontend/
